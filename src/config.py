@@ -8,22 +8,22 @@ PLACE = 'Cook County'
 FILENAME = PLACE.replace(' ', '-')
 
 # --- plotting parameters --- #
-center = (41.8781, -87.6298)
-line_scaling = 100
-hexblack = "#000000"
-hexorange = "#E69F00"
-hexskyblue = "#56B4E9"
-hexbluishgreen = "#009E73"
-hexyellow = "#F0E442"
-hexblue = "#0072B2"
-hexvermillion = "#D55E00"
-hexreddishpurple = "#CC79A7"
-hexcolors = [
-    hexyellow,
-    hexblue,
-    hexvermillion,
-    hexskyblue,
-    hexorange,
-    hexbluishgreen,
-    hexreddishpurple,
+CENTER = (41.8781, -87.6298)
+LINESCALING = 4
+HEXBLACK = "#000000"
+HEXORANGE = "#E69F00"
+HEXSKYBLUE = "#56B4E9"
+HEXBLUISHGREEN = "#009E73"
+HEXYELLOW = "#F0E442"
+HEXBLUE = "#0072B2"
+HEXVERMILLION = "#D55E00"
+HEXREDDISHPURPUPLE = "#CC79A7"
+HEXCOLORS = [
+    HEXYELLOW,
+    HEXBLUE,
+    HEXVERMILLION,
+    HEXSKYBLUE,
+    HEXORANGE,
+    HEXBLUISHGREEN,
+    HEXREDDISHPURPUPLE,
 ]
