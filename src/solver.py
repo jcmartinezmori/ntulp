@@ -25,6 +25,9 @@ def main(instance, modelname, **kwargs):
         m.addConstr(gp.quicksum(A[k][j] * m._x[j] for j in J) == sum(B[i][k] for i in N))
     for i in N:
         m.addConstr(m._u[i] == gp.quicksum(V[i][j] * m._x[j] for j in J))
+    for i in N:
+        s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
+        m.addConstr(m._u[i] - s == max(V[i][j] for j in J))
 
     objective = kwargs.get('objective', 'utilitarian')
     if objective == 'utilitarian':
