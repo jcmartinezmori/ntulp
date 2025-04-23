@@ -73,7 +73,7 @@ def main(instance, modelname, **kwargs):
         tt = tf - ts
 
         out = x_N, u_N, tt
-        with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(relpath, filename, modelname, blocking_IterCount), 'wb') as file:
+        with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
             pickle.dump(out, file)
 
         eps, S = get_blocking(instance, u_N, BestObjStop=blocking_BestObjStop, TimeLimit=blocking_TimeLimit)
