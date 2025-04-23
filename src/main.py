@@ -22,8 +22,8 @@ if solve:
         blocking_EpsLimit=blocking_EpsLimit
     )
 
-plot = False
-if plot:
+plot_map = False
+if plot_map:
     g, lines_df = helper.load()
     samples_df = pd.read_csv('{0}/results/instances/samples_df_{1}.csv'.format(RELPATH, FILENAME))
 
@@ -34,7 +34,12 @@ if plot:
         g.nodes[sample.d_node]['sample_ct'] += 1
 
     helper.plot_map(modelname, g, lines_df, 0)
-    helper.plot_map(modelname, g, lines_df, 8)
+    helper.plot_map(modelname, g, lines_df, 2)
+
+
+plot_util_curves = False
+if plot_util_curves:
+    pass
 
 
 
