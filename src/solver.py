@@ -38,6 +38,10 @@ def main(instance, modelname, **kwargs):
     else:
         raise Exception('objective {0} not supported'.format(objective))
 
+    for i in N:
+        s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
+        m.addConstr(m._u[i] - s == max(V[i][j] for j in J))
+
     m.optimize()
     x_N = {j: m._x[j].X for j in J}
     u_N = {i: m._u[i].X for i in N}
@@ -54,10 +58,6 @@ def main(instance, modelname, **kwargs):
     out = x_N, u_N, tt, eps
     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
         pickle.dump(out, file)
-
-    for i in N:
-        s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
-        m.addConstr(m._u[i] - s == max(V[i][j] for j in J))
 
     while eps >= blocking_EpsLimit and blocking_IterCount <= blocking_IterLimit:
 
