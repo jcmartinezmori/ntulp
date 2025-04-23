@@ -184,7 +184,7 @@ def get_intersections(instance, m, u_N, S, **kwargs):
 def get_basis(m, constr_names_to_indices):
 
     if m.Status != 2:
-        raise Exception('m is not optimized.')
+        raise Exception('m.Status: {0}'.format(m.Status))
 
     basis_varnames = []
     col_index = 0
