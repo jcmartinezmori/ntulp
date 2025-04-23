@@ -83,7 +83,7 @@ def main(instance, modelname, **kwargs):
 def get_blocking(instance, u_N, **kwargs):
 
     N, J, K, A, B, V = instance
-    M = kwargs.get('M', 10000)
+    M = kwargs.get('M', 100000)
 
     m_S = gp.Model()
     m_S.Params.OutputFlag = kwargs.get('OutputFlag', 1)
