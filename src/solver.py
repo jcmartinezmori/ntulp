@@ -76,7 +76,7 @@ def main(instance, modelname, **kwargs):
         with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
             pickle.dump(out, file)
 
-        eps, S = get_blocking(instance, u_N, BestObjStop=blocking_BestObjStop, TimeLimit=blocking_TimeLimit)
+        eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit)
         blocking_IterCount += 1
 
     return out
