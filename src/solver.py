@@ -42,19 +42,18 @@ def main(instance, modelname, **kwargs):
     x_N = {j: m._x[j].X for j in J}
     u_N = {i: m._u[i].X for i in N}
 
-    tf = time.time()
-    tt = tf - ts
-
-    out = x_N, u_N, tt
-    with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, 0), 'wb') as file:
-        pickle.dump(out, file)
-
     blocking_TimeLimit = kwargs.get('blocking_TimeLimit', 60)
     blocking_IterLimit = kwargs.get('blocking_IterLimit', 10)
     blocking_EpsLimit = kwargs.get('blocking_EpsLimit', 0)
-
     eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit)
     blocking_IterCount = 1
+
+    tf = time.time()
+    tt = tf - ts
+
+    out = x_N, u_N, tt, eps
+    with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, 0), 'wb') as file:
+        pickle.dump(out, file)
 
     while eps >= blocking_EpsLimit and blocking_IterCount <= blocking_IterLimit:
 
@@ -69,15 +68,15 @@ def main(instance, modelname, **kwargs):
         x_N = {j: m._x[j].X for j in J}
         u_N = {i: m._u[i].X for i in N}
 
+        eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit)
+        blocking_IterCount += 1
+
         tf = time.time()
         tt = tf - ts
 
-        out = x_N, u_N, tt
+        out = x_N, u_N, tt, eps
         with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
             pickle.dump(out, file)
-
-        eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit)
-        blocking_IterCount += 1
 
     return out
 
