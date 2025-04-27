@@ -104,8 +104,8 @@ def get_blocking(instance, u_N, **kwargs):
         m_S.addConstr(m_S._u[i] == gp.quicksum(V[i][j] * m_S._x[j] for j in J))
     for i in N:
         # m_S.addConstr(m_S._eps <= m_S._u[i] - u_N[i] * m_S._y[i] + M * (1 - m_S._y[i]))
-        # m_S.addConstr(m_S._y[i] * (m_S._eps - m_S._u[i] + u_N[i]) <= 0)
-        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps - m_S._u[i], gp.GRB.LESS_EQUAL,u_N[i])
+        m_S.addConstr(m_S._y[i] * (m_S._eps - m_S._u[i] + u_N[i]) <= 0)
+        # m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps - m_S._u[i], gp.GRB.LESS_EQUAL, u_N[i])
 
     for i in N:
         m_S._y[i].Start = 1
