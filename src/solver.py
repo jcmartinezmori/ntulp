@@ -105,7 +105,7 @@ def get_blocking(instance, u_N, **kwargs):
     for i in N:
         # m_S.addConstr(m_S._eps <= m_S._u[i] - u_N[i] * m_S._y[i] + M * (1 - m_S._y[i]))
         # m_S.addConstr(m_S._y[i] * (m_S._eps - m_S._u[i] + u_N[i]) <= 0)
-        model.addGenConstrIndicator(m_S._y[i], True, m_S._eps <= m_S._u[i] + u_N[i])
+        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps <= m_S._u[i] + u_N[i])
 
     for i in N:
         m_S._y[i].Start = 1
