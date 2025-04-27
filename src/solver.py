@@ -46,8 +46,8 @@ def main(instance, modelname, **kwargs):
     blocking_IterLimit = kwargs.get('blocking_IterLimit', 10)
     blocking_EpsLimit = kwargs.get('blocking_EpsLimit', 0)
 
+    blocking_IterCount = 0
     eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit)
-    blocking_IterCount = 1
 
     tf = time.time()
     tt = tf - ts
@@ -60,7 +60,6 @@ def main(instance, modelname, **kwargs):
         print('IterCount: {0}'.format(blocking_IterCount))
 
         intersections = get_intersections(instance, m, u_N, S)
-
         s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
         m.addConstr(gp.quicksum(m.getVarByName(varname)/lam for varname, lam in intersections) - s == 1)
 
@@ -68,8 +67,8 @@ def main(instance, modelname, **kwargs):
         x_N = {j: m._x[j].X for j in J}
         u_N = {i: m._u[i].X for i in N}
 
-        eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit)
         blocking_IterCount += 1
+        eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit)
 
         tf = time.time()
         tt = tf - ts
