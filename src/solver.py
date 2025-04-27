@@ -90,7 +90,7 @@ def get_blocking(instance, u_N, **kwargs):
     m_S.Params.TimeLimit = kwargs.get('TimeLimit', 60)
     m_S.ModelSense = -1
 
-    m_S._eps = m_S.addVar(vtype=gp.GRB.CONTINUOUS, lb=-gp.GRB.INFINITY, ub=gp.GRB.INFINITY, name='eps')
+    m_S._eps = m_S.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='eps')
     m_S._y = m_S.addVars(N, vtype=gp.GRB.BINARY, name='y')
     m_S._x = m_S.addVars(J, vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='x')
     m_S._u = m_S.addVars(N, vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='u')
@@ -104,7 +104,7 @@ def get_blocking(instance, u_N, **kwargs):
         m_S.addConstr(m_S._u[i] == gp.quicksum(V[i][j] * m_S._x[j] for j in J))
     for i in N:
         # m_S.addConstr(m_S._eps <= m_S._u[i] - u_N[i] * m_S._y[i] + M * (1 - m_S._y[i]))
-        m_S.addConstr(m_S._eps * m_S._y[i] <= m_S._u[i] - u_N[i])
+        m_S.addConstr(m_S._y[i] * (m_S._eps - m_S._u[i] + u_N[i]) <= 0)
 
     for i in N:
         m_S._y[i].Start = 1
