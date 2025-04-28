@@ -55,6 +55,7 @@ def main(instance, modelname, **kwargs):
     blocking_IterLimit = kwargs.get('blocking_IterLimit', 10)
     blocking_EpsLimit = kwargs.get('blocking_EpsLimit', 0)
 
+    m.reset()
     for i in N:
         s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
         m.addConstr(m._u[i] - s == max(V[i][j] for j in J))
@@ -72,7 +73,7 @@ def main(instance, modelname, **kwargs):
     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
         pickle.dump(out, file)
 
-    while eps >= blocking_EpsLimit and blocking_IterCount <= blocking_IterLimit:
+    while eps > blocking_EpsLimit and blocking_IterCount <= blocking_IterLimit:
 
         print('IterCount: {0}'.format(blocking_IterCount))
 
