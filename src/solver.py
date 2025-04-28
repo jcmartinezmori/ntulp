@@ -58,7 +58,7 @@ def main(instance, modelname, **kwargs):
     m.reset()
     for i in N:
         s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
-        m.addConstr(m._u[i] - s == max(V[i][j] for j in J))
+        m.addConstr(m._u[i] - s == max(V[i][j]/A[0][j] for j in J))
 
     m.optimize()
     x_N = {j: m._x[j].X for j in J}
