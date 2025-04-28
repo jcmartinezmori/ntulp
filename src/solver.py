@@ -38,6 +38,10 @@ def main(instance, modelname, **kwargs):
     else:
         raise Exception('objective {0} not supported'.format(objective))
 
+    for i in N:
+        s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
+        m.addConstr(m._u[i] - s == max(V[i][j] for j in J))
+
     m.optimize()
     x_N = {j: m._x[j].X for j in J}
     u_N = {i: m._u[i].X for i in N}
