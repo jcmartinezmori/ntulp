@@ -10,7 +10,7 @@ blocking_TimeLimit = 300
 blocking_EpsLimit = 0
 modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
 
-solve = False
+solve = True
 if solve:
     with open('{0}/results/instances/{1}.pkl'.format(RELPATH, FILENAME), 'rb') as file:
         instance = pickle.load(file)
