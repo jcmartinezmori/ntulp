@@ -5,8 +5,8 @@ import src.solver as solver
 from src.config import *
 
 objective = 'maximin'
-blocking_IterLimit = 1000
-blocking_TimeLimit = 300
+blocking_IterLimit = 100
+blocking_TimeLimit = 600 * 1
 blocking_EpsLimit = 0
 modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
 
