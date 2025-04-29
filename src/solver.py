@@ -81,6 +81,7 @@ def main(instance, modelname, **kwargs):
         s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
         m.addConstr(gp.quicksum(m.getVarByName(varname)/lam for varname, lam in intersections) - s == 1)
 
+        m.reset()
         m.optimize()
         x_N = {j: m._x[j].X for j in J}
         u_N = {i: m._u[i].X for i in N}
