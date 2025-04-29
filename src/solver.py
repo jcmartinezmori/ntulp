@@ -105,6 +105,7 @@ def get_blocking(instance, u_N, **kwargs):
     m_S = gp.Model()
     m_S.Params.OutputFlag = kwargs.get('OutputFlag', 1)
     m_S.Params.MIPFocus = kwargs.get('MIPFocus', 1)
+    m_S.Params.NumericFocus = kwargs.get('NumericFocus', 3)
     m_S.Params.TimeLimit = kwargs.get('TimeLimit', 60)
     m_S.ModelSense = -1
 
