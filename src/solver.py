@@ -100,11 +100,11 @@ def main(instance, modelname, **kwargs):
 def get_blocking(instance, u_N, **kwargs):
 
     N, J, K, A, B, V = instance
-    M = kwargs.get('M', 1000000)
 
     m_S = gp.Model()
     m_S.Params.OutputFlag = kwargs.get('OutputFlag', 1)
     m_S.Params.MIPFocus = kwargs.get('MIPFocus', 1)
+    m_s.Params.Heuristics = kwargs.get('Heuristics', 0.25)
     m_S.Params.TimeLimit = kwargs.get('TimeLimit', 60)
     m_S.ModelSense = -1
 
@@ -121,8 +121,6 @@ def get_blocking(instance, u_N, **kwargs):
     for i in N:
         m_S.addConstr(m_S._u[i] == gp.quicksum(V[i][j] * m_S._x[j] for j in J))
     for i in N:
-        # m_S.addConstr(m_S._eps <= m_S._u[i] - u_N[i] * m_S._y[i] + M * (1 - m_S._y[i]))
-        # m_S.addConstr(m_S._y[i] * (m_S._eps - m_S._u[i] + u_N[i]) <= 0)
         m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps - m_S._u[i], gp.GRB.LESS_EQUAL, -u_N[i])
 
     for i in N:

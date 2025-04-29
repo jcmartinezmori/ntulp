@@ -5,12 +5,12 @@ import src.solver as solver
 from src.config import *
 
 objective = 'maximin'
-blocking_TimeLimit = 600
-blocking_IterLimit = 100
+blocking_IterLimit = 1000
+blocking_TimeLimit = 300
 blocking_EpsLimit = 0
-modelname = '{0}-{1}-{2}-{3}'.format(objective, blocking_TimeLimit, blocking_IterLimit, blocking_EpsLimit)
+modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
 
-solve = True
+solve = False
 if solve:
     with open('{0}/results/instances/{1}.pkl'.format(RELPATH, FILENAME), 'rb') as file:
         instance = pickle.load(file)
@@ -33,8 +33,10 @@ if plot_map:
         g.nodes[sample.o_node]['sample_ct'] += 1
         g.nodes[sample.d_node]['sample_ct'] += 1
 
+    helper.plot_map(modelname, g, lines_df, -1)
     helper.plot_map(modelname, g, lines_df, 0)
-    helper.plot_map(modelname, g, lines_df, 2)
+    # helper.plot_map(modelname, g, lines_df, 2)
+    helper.plot_map(modelname, g, lines_df, 90)
 
 
 plot_util_curves = False
