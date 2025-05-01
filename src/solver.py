@@ -43,11 +43,11 @@ def main(instance, modelname, **kwargs):
     u_N = {i: m._u[i].X for i in N}
 
     blocking_IterCount = -1
-    eps = -1
+    eps, S = -1, None
 
     tf = time.time()
     tt = tf - ts
-    out = x_N, u_N, tt, eps
+    out = x_N, u_N, tt, eps, S
     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
         pickle.dump(out, file)
 
@@ -71,7 +71,7 @@ def main(instance, modelname, **kwargs):
 
     tf = time.time()
     tt = tf - ts
-    out = x_N, u_N, tt, eps
+    out = x_N, u_N, tt, eps, S
     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
         pickle.dump(out, file)
 
@@ -94,7 +94,7 @@ def main(instance, modelname, **kwargs):
 
         tf = time.time()
         tt = tf - ts
-        out = x_N, u_N, tt, eps
+        out = x_N, u_N, tt, eps, S
         with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
             pickle.dump(out, file)
 
