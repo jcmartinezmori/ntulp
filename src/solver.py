@@ -131,8 +131,11 @@ def get_blocking(instance, u_N, **kwargs):
 
     for StartNumber, Start in enumerate(Starts):
         m_S.Params.StartNumber = StartNumber
-        for i in Start:
-            m_S._y[i].Start = 1
+        for i in N:
+            if i in Start:
+                m_S._y[i].Start = 1
+            else:
+                m_S._y[i].Start = 0
 
     m_S.optimize()
 
