@@ -79,9 +79,12 @@ def main(instance, modelname, **kwargs):
 
         print('IterCount: {0}'.format(blocking_IterCount))
 
-        intersections = get_intersections(instance, m, u_N, S)
-        s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
-        m.addConstr(gp.quicksum(m.getVarByName(varname)/lam for varname, lam in intersections) - s == 1)
+        for ct, S in enumerate(blocking_Starts):
+            intersections = get_intersections(instance, m, u_N, S)
+            if intersections is not None:
+                print('... Added cut for S no. {0}'.format(ct))
+                s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
+                m.addConstr(gp.quicksum(m.getVarByName(varname)/lam for varname, lam in intersections) - s == 1)
 
         m.reset()
         m.optimize()
@@ -164,6 +167,18 @@ def get_intersections(instance, m, u_N, S, **kwargs):
 
     m_S.setObjective(m_S._lam)
 
+    constrs = []
+    for i in S:
+        constr = m_S.addConstr(m_S._lam <= m_S._u[i] - u_N[i])
+        constrs.append(constr)
+    m_S.optimize()
+    try:
+        assert m_S._lam.X > 0
+        m_S.remove(constrs)
+        m_S.reset()
+    except (AttributeError, AssertionError):
+        return None
+
     constr_names_to_indices = {constr.ConstrName: i for i, constr in enumerate(m.getConstrs())}
     basis_mat, basis_varnames = get_basis(m, constr_names_to_indices)
 
@@ -203,6 +218,7 @@ def get_intersections(instance, m, u_N, S, **kwargs):
         if m_S.Status == 2:
             intersections.append((var.VarName, m_S._lam.X))
         m_S.remove(constrs)
+        m_S.reset()
 
     return intersections
 
