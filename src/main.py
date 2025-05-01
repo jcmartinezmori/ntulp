@@ -8,7 +8,7 @@ objective = 'utilitarian'
 blocking_IterLimit = 100
 blocking_TimeLimit = 600 * 1
 blocking_EpsLimit = 0
-modelname = '{0}-{1}-{2}-v2'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
+modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
 
 solve = True
 if solve:
