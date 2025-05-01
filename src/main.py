@@ -4,11 +4,11 @@ import src.helper as helper
 import src.solver as solver
 from src.config import *
 
-objective = 'maximin'
+objective = 'utilitarian'
 blocking_IterLimit = 100
 blocking_TimeLimit = 600 * 1
 blocking_EpsLimit = 0
-modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
+modelname = '{0}-{1}-{2}-v2'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
 
 solve = True
 if solve:
@@ -36,7 +36,7 @@ if plot_map:
     helper.plot_map(modelname, g, lines_df, -1)
     helper.plot_map(modelname, g, lines_df, 0)
     # helper.plot_map(modelname, g, lines_df, 2)
-    helper.plot_map(modelname, g, lines_df, 90)
+    helper.plot_map(modelname, g, lines_df, 46)
 
 
 plot_util_curves = False

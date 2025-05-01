@@ -54,6 +54,7 @@ def main(instance, modelname, **kwargs):
     blocking_TimeLimit = kwargs.get('blocking_TimeLimit', 60)
     blocking_IterLimit = kwargs.get('blocking_IterLimit', 10)
     blocking_EpsLimit = kwargs.get('blocking_EpsLimit', 0)
+    blocking_Starts = {tuple(sorted(N))}
 
     m.reset()
     for i in N:
@@ -65,7 +66,8 @@ def main(instance, modelname, **kwargs):
     u_N = {i: m._u[i].X for i in N}
 
     blocking_IterCount += 1
-    eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit)
+    eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit, blocking_Starts=blocking_Starts)
+    blocking_Starts.add(tuple(sorted(S)))
 
     tf = time.time()
     tt = tf - ts
@@ -87,7 +89,8 @@ def main(instance, modelname, **kwargs):
         u_N = {i: m._u[i].X for i in N}
 
         blocking_IterCount += 1
-        eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit)
+        eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit, blocking_Starts=blocking_Starts)
+        blocking_Starts.add(tuple(sorted(S)))
 
         tf = time.time()
         tt = tf - ts
@@ -101,12 +104,14 @@ def main(instance, modelname, **kwargs):
 def get_blocking(instance, u_N, **kwargs):
 
     N, J, K, A, B, V = instance
+    Starts = kwargs.get('blocking_Starts', {tuple(sorted(N))})
 
     m_S = gp.Model()
     m_S.Params.OutputFlag = kwargs.get('OutputFlag', 1)
     m_S.Params.MIPFocus = kwargs.get('MIPFocus', 1)
     m_S.Params.NumericFocus = kwargs.get('NumericFocus', 3)
     m_S.Params.TimeLimit = kwargs.get('TimeLimit', 60)
+    m_S.NumStart = len(Starts)
     m_S.ModelSense = -1
 
     m_S._eps = m_S.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='eps')
@@ -124,9 +129,10 @@ def get_blocking(instance, u_N, **kwargs):
     for i in N:
         m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps - m_S._u[i], gp.GRB.LESS_EQUAL, -u_N[i])
 
-    for i in N:
-        m_S._y[i].Start = 1
-        m_S._u[i].Start = u_N[i]
+    for StartNumber, Start in enumerate(Starts):
+        m.Params.StartNumber = StartNumber
+        for i in Start:
+            m_S._y[i].Start = 1
 
     m_S.optimize()
 
