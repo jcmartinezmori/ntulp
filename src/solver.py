@@ -153,7 +153,8 @@ def get_intersections(instance, m, u_N, S, **kwargs):
     N, J, K, A, B, V = instance
 
     m_S = gp.Model()
-    m_S.Params.OutputFlag = kwargs.get('OutputFlag', 0)
+    m_S.Params.OutputFlag = kwargs.get('OutputFlag', 1)
+    m_S.Params.NumericFocus = kwargs.get('NumericFocus', 3)
     m_S.ModelSense = -1
 
     m_S._lam = m_S.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='lam')
