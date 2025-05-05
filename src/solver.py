@@ -38,16 +38,17 @@ def main(instance, modelname, **kwargs):
     else:
         raise Exception('objective {0} not supported'.format(objective))
 
+    cutCount = 0
+    blocking_IterCount = -1
+    eps, S, = -1, None
+
     m.optimize()
     x_N = {j: m._x[j].X for j in J}
     u_N = {i: m._u[i].X for i in N}
 
-    blocking_IterCount = -1
-    eps, S = -1, None
-
     tf = time.time()
     tt = tf - ts
-    out = x_N, u_N, tt, eps, S
+    out = x_N, u_N, tt, cutCount, eps, S
     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
         pickle.dump(out, file)
 
@@ -58,6 +59,7 @@ def main(instance, modelname, **kwargs):
 
     m.reset()
     for i in N:
+        cutCount += 1
         s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
         m.addConstr(m._u[i] - s == max(V[i][j]/A[0][j] for j in J))
 
@@ -71,7 +73,7 @@ def main(instance, modelname, **kwargs):
 
     tf = time.time()
     tt = tf - ts
-    out = x_N, u_N, tt, eps, S
+    out = x_N, u_N, tt, cutCount, eps, S
     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
         pickle.dump(out, file)
 
@@ -82,7 +84,8 @@ def main(instance, modelname, **kwargs):
         for ct, S in enumerate(blocking_Starts):
             intersections = get_intersections(instance, m, u_N, S)
             if intersections is not None:
-                print('... Added cut for S no. {0}'.format(ct))
+                print('... Adding cut for S no. {0}'.format(ct))
+                cutCount += 1
                 s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
                 m.addConstr(gp.quicksum(m.getVarByName(varname)/lam for varname, lam in intersections) - s == 1)
 
@@ -97,7 +100,7 @@ def main(instance, modelname, **kwargs):
 
         tf = time.time()
         tt = tf - ts
-        out = x_N, u_N, tt, eps, S
+        out = x_N, u_N, tt, cutCount, eps, S
         with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
             pickle.dump(out, file)
 
