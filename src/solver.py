@@ -84,7 +84,7 @@ def main(instance, modelname, **kwargs):
             if intersections is not None:
                 print('... Added cut for S no. {0}'.format(ct))
                 s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
-                m.addConstr(gp.quicksum(m.getVarByName(varname)/lam for varname, lam in intersections) - s == 1-1E-6)
+                m.addConstr(gp.quicksum(m.getVarByName(varname)/lam for varname, lam in intersections) - s == 1)
 
         m.reset()
         m.optimize()
