@@ -45,10 +45,11 @@ def main(instance, modelname, **kwargs):
     m.optimize()
     x_N = {j: m._x[j].X for j in J}
     u_N = {i: m._u[i].X for i in N}
+    kappa = m.getAttr('KappaExact')
 
     tf = time.time()
     tt = tf - ts
-    out = x_N, u_N, tt, cutCount, eps, S
+    out = x_N, u_N, tt, cutCount, eps, S, kappa
     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
         pickle.dump(out, file)
 
@@ -66,6 +67,7 @@ def main(instance, modelname, **kwargs):
     m.optimize()
     x_N = {j: m._x[j].X for j in J}
     u_N = {i: m._u[i].X for i in N}
+    kappa = m.getAttr('KappaExact')
 
     blocking_IterCount += 1
     eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit, blocking_Starts=blocking_Starts)
@@ -73,7 +75,7 @@ def main(instance, modelname, **kwargs):
 
     tf = time.time()
     tt = tf - ts
-    out = x_N, u_N, tt, cutCount, eps, S
+    out = x_N, u_N, tt, cutCount, eps, S, kappa
     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
         pickle.dump(out, file)
 
@@ -93,6 +95,7 @@ def main(instance, modelname, **kwargs):
         m.optimize()
         x_N = {j: m._x[j].X for j in J}
         u_N = {i: m._u[i].X for i in N}
+        kappa = m.getAttr('KappaExact')
 
         blocking_IterCount += 1
         eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit, blocking_Starts=blocking_Starts)
@@ -100,7 +103,7 @@ def main(instance, modelname, **kwargs):
 
         tf = time.time()
         tt = tf - ts
-        out = x_N, u_N, tt, cutCount, eps, S
+        out = x_N, u_N, tt, cutCount, eps, S, kappa
         with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
             pickle.dump(out, file)
 
