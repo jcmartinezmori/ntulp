@@ -120,10 +120,9 @@ def get_blocking(instance, u_N, **kwargs):
     m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-9)
     m_S.Params.MIPFocus = kwargs.get('MIPFocus', 1)
     m_S.Params.NumericFocus = kwargs.get('NumericFocus', 3)
-    m_S.Params.TimeLimit = kwargs.get('TimeLimit', 60)
+    m_S.Params.TimeLimit = 0.75 * kwargs.get('TimeLimit', 60)
     m_S.NumStart = len(Starts)
     m_S.ModelSense = -1
-    m_S.update()
 
     m_S._eps = m_S.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='eps')
     m_S._y = m_S.addVars(N, vtype=gp.GRB.BINARY, name='y')
@@ -140,6 +139,7 @@ def get_blocking(instance, u_N, **kwargs):
 
     for StartNumber, Start in enumerate(Starts):
         m_S.Params.StartNumber = StartNumber
+        m_S.Params.StartNumber = StartNumber
         for i in N:
             if i in Start:
                 m_S._y[i].Start = 1
@@ -147,21 +147,20 @@ def get_blocking(instance, u_N, **kwargs):
                 m_S._y[i].Start = 0
 
     obj0 = m_S._eps
+    m_S.setObjective(obj0)
+
+    m_S.optimize()
+
+    m_S.Params.TimeLimit = 0.25 * kwargs.get('TimeLimit', 60)
+
+    m_S.addConstr(m_S._eps >= m_S._eps.X)
     fracStarts = {i: 0 for i in N}
     for Start in Starts:
         for i in Start:
             fracStarts[i] += 1/m_S.NumStart
     obj1 = gp.quicksum(m_S._y[i] * (1 - fracStarts[i]) for i in N)
 
-    m_S.setObjectiveN(obj0, index=0, priority=1)
-    m_S.setObjectiveN(obj1, index=1, priority=0)
-
-    env0 = m_S.getMultiobjEnv(0)
-    # env1 = model.getMultiobjEnv(1)
-
-    env0.setParam('TimeLimit', m_S.Params.TimeLimit * 0.75)
-    # env1.setParam('TimeLimit', 10)
-
+    m_S.setObjective(obj1)
     m_S.optimize()
 
     eps = m_S._eps.X
