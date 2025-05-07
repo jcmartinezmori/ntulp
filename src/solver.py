@@ -129,8 +129,6 @@ def get_blocking(instance, u_N, **kwargs):
     m_S._x = m_S.addVars(J, vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='x')
     m_S._u = m_S.addVars(N, vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='u')
 
-    m_S.setObjective(m_S._eps)
-
     m_S.addConstr(gp.quicksum(m_S._y[i] for i in N) >= 1)
     for k in K:
         m_S.addConstr(gp.quicksum(A[k][j] * m_S._x[j] for j in J) == gp.quicksum(B[i][k] * m_S._y[i] for i in N))
@@ -146,6 +144,22 @@ def get_blocking(instance, u_N, **kwargs):
                 m_S._y[i].Start = 1
             else:
                 m_S._y[i].Start = 0
+
+    obj0 = m_S._eps
+    fracStarts = {i: 0 for i in N}
+    for Start in Starts:
+        for i in Start:
+            fracStarts[i] += 1/m_S.NumStart
+    obj1 = gp.quicksum(m_S._y[i] * (1 - fracStarts[i]) for i in N)
+
+    m_S.setObjectiveN(obj0, index=0, priority=1)
+    m_S.setObjectiveN(obj1, index=1, priority=0)
+
+    env0 = m_S.getMultiobjEnv(0)
+    # env1 = model.getMultiobjEnv(1)
+
+    env0.setParam('TimeLimit', m_S.Params.TimeLimit * 0.75)
+    # env1.setParam('TimeLimit', 10)
 
     m_S.optimize()
 
