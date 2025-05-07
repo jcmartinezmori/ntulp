@@ -121,9 +121,9 @@ def get_blocking(instance, u_N, **kwargs):
     m_S.Params.MIPFocus = kwargs.get('MIPFocus', 1)
     m_S.Params.NumericFocus = kwargs.get('NumericFocus', 3)
     m_S.Params.TimeLimit = kwargs.get('TimeLimit', 60)
-    NumStart = len(Starts)
-    m_S.NumStart = NumStart
+    m_S.NumStart = len(Starts)
     m_S.ModelSense = -1
+    m_S.update()
 
     m_S._eps = m_S.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='eps')
     m_S._y = m_S.addVars(N, vtype=gp.GRB.BINARY, name='y')
@@ -150,7 +150,7 @@ def get_blocking(instance, u_N, **kwargs):
     fracStarts = {i: 0 for i in N}
     for Start in Starts:
         for i in Start:
-            fracStarts[i] += 1/NumStart
+            fracStarts[i] += 1/m_S.NumStart
     obj1 = gp.quicksum(m_S._y[i] * (1 - fracStarts[i]) for i in N)
 
     m_S.setObjectiveN(obj0, index=0, priority=1)
