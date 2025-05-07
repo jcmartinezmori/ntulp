@@ -153,7 +153,7 @@ def get_blocking(instance, u_N, **kwargs):
 
     m_S.Params.TimeLimit = 0.25 * kwargs.get('TimeLimit', 60)
 
-    m_S.addConstr(m_S._eps >= m_S._eps.X)
+    m_S.addConstr(m_S._eps >= (1-1E-3) * m_S._eps.X)
     fracStarts = {i: 0 for i in N}
     for Start in Starts:
         for i in Start:
