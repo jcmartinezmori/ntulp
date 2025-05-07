@@ -158,7 +158,7 @@ def get_blocking(instance, u_N, **kwargs):
     for Start in Starts:
         for i in Start:
             fracStarts[i] += 1/m_S.NumStart
-    obj1 = gp.quicksum(m_S._y[i] * (1 - fracStarts[i]) for i in N)
+    obj1 = gp.quicksum(-fracStarts[i] * m_S._y[i] for i in N)
 
     m_S.setObjective(obj1)
     m_S.optimize()
