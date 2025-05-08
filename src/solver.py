@@ -114,12 +114,11 @@ def get_blocking(instance, u_N, **kwargs):
 
     N, J, K, A, B, V = instance
     Starts = kwargs.get('blocking_Starts', {tuple(sorted(N))})
+    Starts = Starts.copy()
 
     for j in J:
-
         eps_j = 0
         S_j = None
-
         A_j = A[0][j]
         N_j_V_j = sorted([(i, V[i][j]) for i in N], key=lambda x: x[1], reverse=True)
         for ct in range(1, len(N) + 1):
