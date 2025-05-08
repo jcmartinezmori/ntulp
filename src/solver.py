@@ -121,9 +121,9 @@ def get_blocking(instance, u_N, **kwargs):
         for i in Start:
             cts[i] += 1
     weights = {i: np.exp2(-cts[i]) for i in N}
-    sum_weights = sum(weights.values())
+    max_weight = max(weights.values())
     for i in N:
-        weights[i] /= sum_weights
+        weights[i] /= max_weight
 
     for j in J:
         eps_j = 0
