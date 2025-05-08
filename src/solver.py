@@ -116,14 +116,14 @@ def get_blocking(instance, u_N, **kwargs):
     Starts = kwargs.get('blocking_Starts', {tuple(sorted(N))})
     Starts = Starts.copy()
 
-    den = len(Starts) + 1
-    weights = {i: 1 for i in N}
+    cts = {i: 0 for i in N}
     for Start in Starts:
         for i in Start:
-            weights[i] -= 1/den
-    max_weight = max(weights.values())
+            cts[i] += 1
+    weights = {i: np.exp2(-cts[i]) for i in N}
+    sum_weights = sum(weights.values())
     for i in N:
-        weights[i] /= max_weight
+        weights[i] /= sum_weights
 
     for j in J:
         eps_j = 0
