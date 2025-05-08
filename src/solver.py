@@ -171,11 +171,12 @@ def get_blocking(instance, u_N, **kwargs):
     m_S.Params.TimeLimit = 0.25 * kwargs.get('TimeLimit', 60)
 
     m_S.addConstr(m_S._eps >= (1-1E-3) * m_S._eps.X)
-    fracStarts = {i: 0 for i in N}
-    for Start in Starts:
-        for i in Start:
-            fracStarts[i] += 1/m_S.NumStart
-    obj1 = gp.quicksum(-fracStarts[i] * m_S._y[i] for i in N)
+    # fracStarts = {i: 0 for i in N}
+    # for Start in Starts:
+    #     for i in Start:
+    #         fracStarts[i] += 1/m_S.NumStart
+    # obj1 = gp.quicksum(-fracStarts[i] * m_S._y[i] for i in N)
+    obj1 = gp.quicksum(-m_S._y[i] for i in N)
 
     m_S.setObjective(obj1)
     m_S.optimize()
