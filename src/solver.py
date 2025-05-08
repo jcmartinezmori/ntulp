@@ -115,6 +115,16 @@ def get_blocking(instance, u_N, **kwargs):
     N, J, K, A, B, V = instance
     Starts = kwargs.get('blocking_Starts', {tuple(sorted(N))})
 
+    for j in J:
+        A_j = A[0][j]
+        N_j_V_j = sorted([(i, V[i][j]) for i in N], key=lambda x: x[1], reverse=True)
+        for ct in range(1, len(N) + 1):
+            if N_j_V_j[ct - 1][1] <= 0:
+                break
+            if min(V_ij * ct / A_j - u_N[i] for i, V_ij in N_j_V_j[:ct]) > 0:
+                S = tuple(sorted(i for i, _ in N_j_V_j[:ct]))
+                Starts.add(S)
+
     m_S = gp.Model()
     m_S.Params.OutputFlag = kwargs.get('OutputFlag', 1)
     m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-9)
