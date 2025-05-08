@@ -116,6 +116,15 @@ def get_blocking(instance, u_N, **kwargs):
     Starts = kwargs.get('blocking_Starts', {tuple(sorted(N))})
     Starts = Starts.copy()
 
+    den = len(Starts) + 1
+    weights = {i: 1 for i in N}
+    for Start in Starts:
+        for i in Start:
+            weights[i] -= 1/den
+    max_weight = max(weights.values())
+    for i in N:
+        weights[i] /= max_weight
+
     for j in J:
         eps_j = 0
         S_j = None
@@ -151,7 +160,7 @@ def get_blocking(instance, u_N, **kwargs):
     for i in N:
         m_S.addConstr(m_S._u[i] == gp.quicksum(V[i][j] * m_S._x[j] for j in J))
     for i in N:
-        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps - m_S._u[i], gp.GRB.LESS_EQUAL, -u_N[i])
+        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps - weights[i] * m_S._u[i], gp.GRB.LESS_EQUAL, - weights[i] * u_N[i])
 
     for StartNumber, Start in enumerate(Starts):
         m_S.Params.StartNumber = StartNumber
@@ -170,18 +179,15 @@ def get_blocking(instance, u_N, **kwargs):
     m_S.Params.TimeLimit = 0.25 * kwargs.get('TimeLimit', 60)
 
     m_S.addConstr(m_S._eps >= (1-1E-3) * m_S._eps.X)
-    # fracStarts = {i: 0 for i in N}
-    # for Start in Starts:
-    #     for i in Start:
-    #         fracStarts[i] += 1/m_S.NumStart
-    # obj1 = gp.quicksum(-fracStarts[i] * m_S._y[i] for i in N)
+
     obj1 = gp.quicksum(-m_S._y[i] for i in N)
 
     m_S.setObjective(obj1)
     m_S.optimize()
 
-    eps = m_S._eps.X
+    # eps = m_S._eps.X
     S = {i for i in N if m_S._y[i].X}
+    eps = min(m_S._u[i].X - u_N[i] for i in S)
 
     return eps, S
 
