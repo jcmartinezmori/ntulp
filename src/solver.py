@@ -71,7 +71,7 @@ def main(instance, modelname, **kwargs):
 
     blocking_IterCount += 1
     eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit, blocking_Starts=blocking_Starts)
-    blocking_Starts.add(tuple(sorted(S)))
+    S = tuple(sorted(S))
 
     tf = time.time()
     tt = tf - ts
@@ -83,13 +83,19 @@ def main(instance, modelname, **kwargs):
 
         print('IterCount: {0}'.format(blocking_IterCount))
 
-        for ct, S in enumerate(blocking_Starts):
-            intersections = get_intersections(instance, m, u_N, S)
+        intersections = get_intersections(instance, m, u_N, S, LamTh=0)
+        if intersections is not None:
+            cutCount += 1
+            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
+            m.addConstr(gp.quicksum(m.getVarByName(varname) / lam for varname, lam in intersections) - s == 1)
+        for ct, prev_S in enumerate(blocking_Starts):
+            intersections = get_intersections(instance, m, u_N, prev_S, LamTh=1E-1)
             if intersections is not None:
-                print('... Adding cut for S no. {0}'.format(ct))
+                print('... Adding cut for previous S no. {0}'.format(ct))
                 cutCount += 1
                 s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
                 m.addConstr(gp.quicksum(m.getVarByName(varname)/lam for varname, lam in intersections) - s == 1)
+        blocking_Starts.add(S)
 
         m.reset()
         m.optimize()
@@ -99,7 +105,7 @@ def main(instance, modelname, **kwargs):
 
         blocking_IterCount += 1
         eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit, blocking_Starts=blocking_Starts)
-        blocking_Starts.add(tuple(sorted(S)))
+        S = tuple(sorted(S))
 
         tf = time.time()
         tt = tf - ts
@@ -221,7 +227,7 @@ def get_intersections(instance, m, u_N, S, **kwargs):
         constrs.append(constr)
     m_S.optimize()
     try:
-        assert m_S._lam.X >= 1E-1
+        assert m_S._lam.X >= kwargs.get('LamTh', 0)
         m_S.remove(constrs)
         m_S.reset()
     except (AttributeError, AssertionError):
