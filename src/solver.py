@@ -89,6 +89,8 @@ def main(instance, modelname, **kwargs):
             s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
             m.addConstr(gp.quicksum(m.getVarByName(varname) / lam for varname, lam in intersections) - s == 1)
         for ct, prev_S in enumerate(blocking_Starts):
+            if prev_S == S:
+                continue
             intersections = get_intersections(instance, m, u_N, prev_S, LamTh=1E-1)
             if intersections is not None:
                 print('... Adding cut for previous S no. {0}'.format(ct))
