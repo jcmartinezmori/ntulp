@@ -221,7 +221,7 @@ def get_intersections(instance, m, u_N, S, **kwargs):
         constrs.append(constr)
     m_S.optimize()
     try:
-        assert m_S._lam.X > 0
+        assert m_S._lam.X >= 1E-1
         m_S.remove(constrs)
         m_S.reset()
     except (AttributeError, AssertionError):
