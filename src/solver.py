@@ -145,10 +145,10 @@ def get_blocking(instance, u_N, **kwargs):
     m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-9)
     m_S.Params.MIPFocus = kwargs.get('MIPFocus', 1)
     m_S.Params.NumericFocus = kwargs.get('NumericFocus', 3)
-    m_S.Params.TimeLimit = 0.75 * kwargs.get('TimeLimit', 60)
     m_S.NumStart = len(Starts)
     m_S.ModelSense = -1
 
+    m_S._zet = m_S.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='zet')
     m_S._eps = m_S.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='eps')
     m_S._y = m_S.addVars(N, vtype=gp.GRB.BINARY, name='y')
     m_S._x = m_S.addVars(J, vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='x')
@@ -160,7 +160,8 @@ def get_blocking(instance, u_N, **kwargs):
     for i in N:
         m_S.addConstr(m_S._u[i] == gp.quicksum(V[i][j] * m_S._x[j] for j in J))
     for i in N:
-        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps - weights[i] * m_S._u[i], gp.GRB.LESS_EQUAL, - weights[i] * u_N[i])
+        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._zet - weights[i] * m_S._u[i], gp.GRB.LESS_EQUAL, - weights[i] * u_N[i])
+        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps - m_S._u[i], gp.GRB.LESS_EQUAL, - u_N[i])
 
     for StartNumber, Start in enumerate(Starts):
         m_S.Params.StartNumber = StartNumber
@@ -171,18 +172,18 @@ def get_blocking(instance, u_N, **kwargs):
             else:
                 m_S._y[i].Start = 0
 
-    obj0 = m_S._eps
-    m_S.setObjective(obj0)
-
+    m_S.Params.TimeLimit = 0.5 * kwargs.get('TimeLimit', 60)
+    m_S.setObjective(m_S._zet)
     m_S.optimize()
+    m_S.addConstr(m_S._zet >= (1-1E-3) * m_S._zet.X)
 
-    m_S.Params.TimeLimit = 0.25 * kwargs.get('TimeLimit', 60)
-
+    m_S.Params.TimeLimit = 0.3 * kwargs.get('TimeLimit', 60)
+    m_S.setObjective(m_S._eps)
+    m_S.optimize()
     m_S.addConstr(m_S._eps >= (1-1E-3) * m_S._eps.X)
 
-    obj1 = gp.quicksum(-m_S._y[i] for i in N)
-
-    m_S.setObjective(obj1)
+    m_S.Params.TimeLimit = 0.2 * kwargs.get('TimeLimit', 60)
+    m_S.setObjective(gp.quicksum(-m_S._y[i] for i in N))
     m_S.optimize()
 
     # eps = m_S._eps.X

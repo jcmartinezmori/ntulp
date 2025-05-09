@@ -10,7 +10,7 @@ blocking_TimeLimit = 600 * 1
 blocking_EpsLimit = 0
 modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
 
-solve = False
+solve = True
 if solve:
     with open('{0}/results/instances/{1}.pkl'.format(RELPATH, FILENAME), 'rb') as file:
         instance = pickle.load(file)
@@ -22,7 +22,7 @@ if solve:
         blocking_EpsLimit=blocking_EpsLimit
     )
 
-plot_map = True
+plot_map = False
 if plot_map:
     g, lines_df = helper.load()
     samples_df = pd.read_csv('{0}/results/instances/samples_df_{1}.csv'.format(RELPATH, FILENAME))
