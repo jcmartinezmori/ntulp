@@ -26,18 +26,15 @@ def main(instance, modelname, **kwargs):
     for i in N:
         m.addConstr(m._u[i] == gp.quicksum(V[i][j] * m._x[j] for j in J))
 
-    z = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
-    for i in N:
-        s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
-        m.addConstr(m._u[i] - s == z)
-
     objective = kwargs.get('objective', 'utilitarian')
     if objective == 'utilitarian':
-        m.setObjectiveN(gp.quicksum(m._u[i] for i in N), index=0, priority=1)
-        m.setObjectiveN(z, index=1, priority=0)
+        m.setObjective(gp.quicksum(m._u[i] for i in N))
     elif objective == 'maximin':
-        m.setObjectiveN(z, index=0, priority=1)
-        m.setObjectiveN(gp.quicksum(m._u[i] for i in N), index=1, priority=0)
+        z = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
+        for i in N:
+            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
+            m.addConstr(m._u[i] - s == z)
+        m.setObjective(z)
     else:
         raise Exception('objective {0} not supported'.format(objective))
 
