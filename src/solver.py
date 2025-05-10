@@ -83,21 +83,24 @@ def main(instance, modelname, **kwargs):
 
         print('IterCount: {0}'.format(blocking_IterCount))
 
+        print('... adding cut for current S.')
         intersections = get_intersections(instance, m, u_N, S, LamTh=0)
         if intersections is not None:
             cutCount += 1
             s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
             m.addConstr(gp.quicksum(m.getVarByName(varname) / lam for varname, lam in intersections) - s == 1)
+        print('... adding cuts for previous S.')
         for ct, prev_S in enumerate(blocking_Starts):
             if prev_S == S:
                 continue
             intersections = get_intersections(instance, m, u_N, prev_S, LamTh=1E-1)
             if intersections is not None:
-                print('... Adding cut for previous S no. {0}'.format(ct))
+                print('...... adding cut for previous S no. {0}.'.format(ct))
                 cutCount += 1
                 s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
                 m.addConstr(gp.quicksum(m.getVarByName(varname)/lam for varname, lam in intersections) - s == 1)
         blocking_Starts.add(S)
+        print('... solving model.')
 
         m.reset()
         m.optimize()
@@ -180,19 +183,19 @@ def get_blocking(instance, u_N, **kwargs):
             else:
                 m_S._y[i].Start = 0
 
-    m_S.Params.TimeLimit = 0.5 * kwargs.get('TimeLimit', 60)
+    m_S.Params.TimeLimit = 0.6 * kwargs.get('TimeLimit', 60)
     m_S.setObjective(m_S._zet)
     m_S.optimize()
     m_S.addConstr(m_S._zet >= (1-1E-3) * m_S._zet.X)
 
-    m_S.Params.TimeLimit = 0.3 * kwargs.get('TimeLimit', 60)
+    m_S.Params.TimeLimit = 0.4 * kwargs.get('TimeLimit', 60)
     m_S.setObjective(m_S._eps)
     m_S.optimize()
     m_S.addConstr(m_S._eps >= (1-1E-3) * m_S._eps.X)
 
-    m_S.Params.TimeLimit = 0.2 * kwargs.get('TimeLimit', 60)
-    m_S.setObjective(gp.quicksum(-m_S._y[i] for i in N))
-    m_S.optimize()
+    # m_S.Params.TimeLimit = 0.2 * kwargs.get('TimeLimit', 60)
+    # m_S.setObjective(gp.quicksum(-m_S._y[i] for i in N))
+    # m_S.optimize()
 
     # eps = m_S._eps.X
     S = {i for i in N if m_S._y[i].X}
