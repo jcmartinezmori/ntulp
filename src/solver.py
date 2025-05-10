@@ -198,7 +198,7 @@ def get_blocking(instance, u_N, **kwargs):
     # m_S.optimize()
 
     eps = m_S._eps.X
-    S = {i for i in N if m_S._y[i].X == 1}
+    S = {i for i in N if m_S._y[i].X > 1/2}
     # eps = min(m_S._u[i].X - u_N[i] for i in S)
 
     return eps, S
