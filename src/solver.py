@@ -191,15 +191,15 @@ def get_blocking(instance, u_N, **kwargs):
     m_S.Params.TimeLimit = 0.4 * kwargs.get('TimeLimit', 60)
     m_S.setObjective(m_S._eps)
     m_S.optimize()
-    m_S.addConstr(m_S._eps >= (1-1E-3) * m_S._eps.X)
+    # m_S.addConstr(m_S._eps >= (1-1E-3) * m_S._eps.X)
 
     # m_S.Params.TimeLimit = 0.2 * kwargs.get('TimeLimit', 60)
     # m_S.setObjective(gp.quicksum(-m_S._y[i] for i in N))
     # m_S.optimize()
 
-    # eps = m_S._eps.X
-    S = {i for i in N if m_S._y[i].X}
-    eps = min(m_S._u[i].X - u_N[i] for i in S)
+    eps = m_S._eps.X
+    S = {i for i in N if m_S._y[i].X == 1}
+    # eps = min(m_S._u[i].X - u_N[i] for i in S)
 
     return eps, S
 
