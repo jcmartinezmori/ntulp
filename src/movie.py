@@ -64,14 +64,6 @@ async def convert_html_to_images():
 
 if __name__ == '__main__':
     asyncio.run(convert_html_to_images())
-    ffmpeg_command = [
-        'ffmpeg',
-        '-framerate', '3',
-        '-i', 'png_crop_dir/frame_%04d.png',
-        '-crf', '18',
-        '-preset', 'slow',
-        '-pix_fmt', 'yuv420p',
-        'sequence.mp4'
-    ]
-    subprocess.run(ffmpeg_command)
-
+    """
+    ffmpeg -framerate 4 -i png_crop_frames/frame_%04d.png -crf 18 -preset slow -pix_fmt yuv420p sequence.mp4
+    """
