@@ -14,16 +14,16 @@ from pathlib import Path
 from playwright.async_api import async_playwright
 
 objective = 'maximin'
-blocking_TimeLimit = 600 * 2
+blocking_TimeLimit = 600 * 1
 blocking_EpsLimit = 0
-modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
+modelname = 'v2-{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
 blocking_IterCountStart = 0
 blocking_IterCountEnd = 100
 
-html_dir = './results/figures/frames/html'
-pdf_dir = './results/figures/frames/pdf'
-pdf_crop_dir = './results/figures/frames/pdf_crop'
-png_crop_dir = './results/figures/frames/png_crop'
+html_dir = './results/frames/html'
+pdf_dir = './results/frames/pdf'
+pdf_crop_dir = './results/frames/pdf_crop'
+png_crop_dir = './results/frames/png_crop'
 cropbox = (475, 175, 825, 675)
 png_zoom = 4
 
@@ -121,5 +121,5 @@ if __name__ == '__main__':
         pass
     asyncio.run(convert_html_to_images())
     """
-    ffmpeg -framerate 3 -i results/figures/frames/png_crop/frame_%04d.png -crf 18 -preset slow -pix_fmt yuv420p results/figures/frames/frames.mp4
+    ffmpeg -framerate 3 -i results/frames/png_crop/frame_%04d.png -crf 18 -preset slow -pix_fmt yuv420p results/frames/frames.mp4
     """
