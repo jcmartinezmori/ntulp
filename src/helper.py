@@ -17,36 +17,6 @@ def load():
     return g, lines_df
 
 
-def plot_sequence(modelname, g, lines_df, samples_df, blocking_IterCountStart, blocking_IterCountStartEnd):
-
-    for blocking_IterCount in range(blocking_IterCountStart, blocking_IterCountStartEnd + 1):
-        with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'rb') as file:
-            x_N, _, _, _, _, S, _ = pickle.load(file)
-            print(sorted(S))
-        lines_df['width'] = [LINESCALING * x_N[j] / lines_df.iloc[j].length for j in range(len(x_N))]
-
-        for _, data in g.nodes(data=True):
-            data['sample_ct'] = 0
-        for i, sample in samples_df.iterrows():
-            if i in S:
-                g.nodes[sample.o_node]['sample_ct'] += 1
-                g.nodes[sample.d_node]['sample_ct'] += 1
-
-        folium_map = folium.Map(location=CENTER, zoom_start=11, tiles=None)
-        folium.TileLayer('OpenStreetMap', opacity=1/5).add_to(folium_map)
-        for u, data in g.nodes(data=True):
-            if data['sample_ct']:
-                folium.CircleMarker(
-                    location=(data['y'], data['x']), color=HEXBLACK, radius=np.log(1 + 1 * data['sample_ct']), weight=0,
-                    fill=True, fill_opacity=1, tooltip=u
-                ).add_to(folium_map)
-        for _, line in lines_df.iterrows():
-            folium.PolyLine(
-                line.coords, color=line.hexcolor, weight=line.width, opacity=1, tooltip=line.name
-            ).add_to(folium_map)
-        folium_map.save('{0}/results/figures/sequence/{1}_{2}_{3}.html'.format(RELPATH, FILENAME, modelname, blocking_IterCount))
-
-
 def plot_map(modelname, g, lines_df, blocking_IterCount):
 
     if modelname == 'alllines':

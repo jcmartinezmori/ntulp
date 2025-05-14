@@ -18,7 +18,6 @@ def main(instance, modelname, **kwargs):
     m.Params.Method = kwargs.get('Method', 1)
     m.Params.NumericFocus = kwargs.get('NumericFocus', 3)
     m.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-9)
-    m.Params.Presolve = kwargs.get('Presolve', 0)
     m.ModelSense = -1
 
     m._x = m.addVars(J, vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='x')
@@ -217,7 +216,6 @@ def get_intersections(instance, m, u_N, S, **kwargs):
     m.Params.Method = kwargs.get('Method', 1)
     m_S.Params.NumericFocus = kwargs.get('NumericFocus', 3)
     m_S.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-9)
-    m_S.Params.Presolve = kwargs.get('Presolve', 0)
     m_S.ModelSense = -1
 
     m_S._lam = m_S.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='lam')

@@ -37,12 +37,8 @@ if plot_map:
     # helper.plot_map(modelname, g, lines_df, 0)
     # # helper.plot_map(modelname, g, lines_df, 2)
     helper.plot_map(modelname, g, lines_df, 68)
-    helper.plot_sequence(modelname, g, lines_df, samples_df, 0, 3)
 
-
-plot_util_curves = False
-if plot_util_curves:
-    pass
-
-
+plot_convergence = False
+if plot_convergence:
+    helper.plot_convergence()
 
