@@ -51,7 +51,7 @@ def plot_convergence():
     data = []
     for objective in objectives:
         for blocking_TimeLimit in blocking_TimeLimits:
-            modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
+            modelname = 'v2-{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
             for blocking_IterCount in range(blocking_IterLimit + 1):
                 try:
                     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(
