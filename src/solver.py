@@ -14,7 +14,7 @@ def main(instance, modelname, **kwargs):
 
     m = gp.Model()
     m.Params.OutputFlag = kwargs.get('OutputFlag', 1)
-    m.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-9)
+    m.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-5)
     m.Params.Method = kwargs.get('Method', 1)
     m.Params.NumericFocus = kwargs.get('NumericFocus', 3)
     m.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-9)
