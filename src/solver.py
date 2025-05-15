@@ -15,7 +15,7 @@ def main(instance, modelname, **kwargs):
     m = gp.Model()
     m.Params.OutputFlag = kwargs.get('OutputFlag', 1)
     # m.Params.CrossoverBasis = kwargs.get('CrossoverBasis', 1)
-    m.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-5)
+    # m.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-5)
     m.Params.Method = kwargs.get('Method', 1)
     m.Params.NumericFocus = kwargs.get('NumericFocus', 3)
     # m.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-9)
@@ -84,26 +84,31 @@ def main(instance, modelname, **kwargs):
 
     while eps > blocking_EpsLimit and blocking_IterCount <= blocking_IterLimit:
 
-        print('IterCount: {0}'.format(blocking_IterCount))
+        print('iterCount: {0}'.format(blocking_IterCount))
 
         print('... adding cut for current S.')
         intersections = get_intersections(instance, m, u_N, S, LamTh=0)
-        print(min(intersections, key=lambda w: w[1]), max(intersections, key=lambda w: w[1]))
+        min_lam = min(intersections, key=lambda w: w[1])
+        max_lam = max(intersections, key=lambda w: w[1])
         if intersections is not None:
             cutCount += 1
             s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
             m.addConstr(gp.quicksum(m.getVarByName(varname) / lam for varname, lam in intersections) - s == 1)
+        print('...... added cut for curr. S with coeff. ratio {0}.'.format(min_lam / max_lam))
         print('... adding cuts for previous S.')
         for ct, prev_S in enumerate(blocking_Starts):
             if prev_S == S:
                 continue
-            intersections = get_intersections(instance, m, u_N, prev_S, LamTh=1E-1)
+            intersections = get_intersections(instance, m, u_N, prev_S, LamTh=0)
             if intersections is not None:
-                print('...... adding cut for previous S no. {0}.'.format(ct))
-                print(min(intersections, key=lambda w: w[1]), max(intersections, key=lambda w: w[1]))
+                min_lam = min(intersections, key=lambda w: w[1])
+                max_lam = max(intersections, key=lambda w: w[1])
+                if min_lam / max_lam < 1E-6:
+                    continue
                 cutCount += 1
                 s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
                 m.addConstr(gp.quicksum(m.getVarByName(varname)/lam for varname, lam in intersections) - s == 1)
+                print('...... added cut for prev. S no. {0}. with coeff. ratio {1}'.format(ct, min_lam/max_lam))
         blocking_Starts.add(S)
         print('... solving model.')
 
