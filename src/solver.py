@@ -8,13 +8,13 @@ from src.config import *
 
 def main(instance, modelname, **kwargs):
 
+    N, J, K, A, B, V = instance
+
     ts = time.time()
     slackCount = 0
     cutCount = 0
     iterCount = -1
     eps, S, = -1, None
-
-    N, J, K, A, B, V = instance
 
     m = gp.Model()
     m.Params.OutputFlag = kwargs.get('OutputFlag', 1)
@@ -87,8 +87,14 @@ def main(instance, modelname, **kwargs):
 
         print('iterCount: {0}'.format(iterCount))
 
+        constr_names_to_indices = {constr.ConstrName: i for i, constr in enumerate(m.getConstrs())}
+        basis_mat, basis_varnames = get_basis(m, constr_names_to_indices)
+
         print('... adding cut for current S.')
-        intersections = get_intersections(instance, m, u_N, S, lamRatTh=0)
+        intersections = get_intersections(
+            instance, m, constr_names_to_indices, basis_mat, basis_varnames, u_N, S,
+            epsTh=0, lamRatTh=0
+        )
         if intersections is not None:
             cutCount += 1
             s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(slackCount))
@@ -101,7 +107,10 @@ def main(instance, modelname, **kwargs):
         for prev_S in Starts:
             if prev_S == S:
                 continue
-            intersections = get_intersections(instance, m, u_N, prev_S, lamRatTh=1E-6)
+            intersections = get_intersections(
+                instance, m, constr_names_to_indices, basis_mat, basis_varnames, u_N, prev_S,
+                epsTh=1E-1, lamRatTh=1E-6
+            )
             if intersections is not None:
                 cutCount += 1
                 s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(slackCount))
@@ -132,41 +141,41 @@ def main(instance, modelname, **kwargs):
 def get_blocking(instance, u_N, **kwargs):
 
     N, J, K, A, B, V = instance
+
     Starts = kwargs.get('Starts', {tuple(sorted(N))}).copy()
 
-    cts = {i: 0 for i in N}
+    startCts = {i: 0 for i in N}
     for Start in Starts:
         for i in Start:
-            cts[i] += 1
-    weights = {i: np.exp2(-cts[i]) for i in N}
+            startCts[i] += 1
+    weights = {i: np.exp2(-startCts[i]) for i in N}
     max_weight = max(weights.values())
     for i in N:
         weights[i] /= max_weight
 
     for j in J:
-        eps_j = 0
-        S_j = None
+        eps_j, S_j = 0, None
         A_j = A[0][j]
-        N_j_V_j = sorted([(i, V[i][j]) for i in N], key=lambda x: x[1], reverse=True)
-        for ct in range(1, len(N) + 1):
-            if N_j_V_j[ct - 1][1] <= 0:
+        N_j, V_j = zip(*sorted([(i, V[i][j]) for i in N], key=lambda val: val[1], reverse=True))
+        for Ct in range(1, len(N_j) + 1):
+            if V_j[Ct - 1] <= 0:
                 break
-            eps = min(V_ij * ct / A_j - u_N[i] for i, V_ij in N_j_V_j[:ct])
+            eps = min(V_ij * Ct / A_j - u_N[i] for i, V_ij in zip(N_j[:Ct], V_j[:Ct]))
             if eps > eps_j:
                 eps_j = eps
-                S_j = tuple(sorted(i for i, _ in N_j_V_j[:ct]))
+                S_j = tuple(sorted(i for i in N_j[:Ct]))
         if S_j is not None:
             Starts.add(S_j)
 
     m_S = gp.Model()
     m_S.Params.OutputFlag = kwargs.get('OutputFlag', 1)
-    m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-9)
+    m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-6)
     m_S.Params.MIPFocus = kwargs.get('MIPFocus', 1)
     m_S.Params.NumericFocus = kwargs.get('NumericFocus', 3)
     m_S.NumStart = len(Starts)
     m_S.ModelSense = -1
 
-    m_S._zet = m_S.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='zet')
+    m_S._del = m_S.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='del')
     m_S._eps = m_S.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='eps')
     m_S._y = m_S.addVars(N, vtype=gp.GRB.BINARY, name='y')
     m_S._x = m_S.addVars(J, vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='x')
@@ -178,11 +187,10 @@ def get_blocking(instance, u_N, **kwargs):
     for i in N:
         m_S.addConstr(m_S._u[i] == gp.quicksum(V[i][j] * m_S._x[j] for j in J))
     for i in N:
-        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._zet - weights[i] * m_S._u[i], gp.GRB.LESS_EQUAL, - weights[i] * u_N[i])
+        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._del - weights[i] * m_S._u[i], gp.GRB.LESS_EQUAL, - weights[i] * u_N[i])
         m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps - m_S._u[i], gp.GRB.LESS_EQUAL, - u_N[i])
 
     for StartNumber, Start in enumerate(Starts):
-        m_S.Params.StartNumber = StartNumber
         m_S.Params.StartNumber = StartNumber
         for i in N:
             if i in Start:
@@ -190,39 +198,30 @@ def get_blocking(instance, u_N, **kwargs):
             else:
                 m_S._y[i].Start = 0
 
-    m_S.Params.TimeLimit = kwargs.get('divTimeLimit', 300)
-    m_S.setObjective(m_S._zet)
+    m_S.Params.TimeLimit = kwargs.get('delTimeLimit', 300)
+    m_S.setObjective(m_S._del)
     m_S.optimize()
-    m_S.addConstr(m_S._zet >= (1-1E-3) * m_S._zet.X)
+    m_S.addConstr(m_S._del >= (1-1E-3) * m_S._del.X)
 
     m_S.Params.TimeLimit = kwargs.get('timeLimit', 300)
     m_S.setObjective(m_S._eps)
     m_S.optimize()
-    # m_S.addConstr(m_S._eps >= (1-1E-3) * m_S._eps.X)
-
-    # m_S.Params.TimeLimit = 0.2 * kwargs.get('TimeLimit', 60)
-    # m_S.setObjective(gp.quicksum(-m_S._y[i] for i in N))
-    # m_S.optimize()
 
     eps = m_S._eps.X
     S = {i for i in N if m_S._y[i].X > 1/2}
-    # eps = min(m_S._u[i].X - u_N[i] for i in S)
 
     return eps, S
 
 
-def get_intersections(instance, m, u_N, S, **kwargs):
+def get_intersections(instance, m, constr_names_to_indices, basis_mat, basis_varnames, u_N, S, **kwargs):
 
     N, J, K, A, B, V = instance
 
     m_S = gp.Model()
     m_S.Params.OutputFlag = kwargs.get('OutputFlag', 0)
-    # m_S.Params.CrossoverBasis = kwargs.get('CrossoverBasis', 1)
-    # m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-9)
-    m_S.Params.Method = kwargs.get('Method', 1)
+    m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-6)
     m_S.Params.NumericFocus = kwargs.get('NumericFocus', 3)
-    m_S.Params.Presolve = kwargs.get('Presolve', 0)
-    # m_S.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-9)
+    m_S.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-6)
     m_S.ModelSense = -1
 
     m_S._lam = m_S.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='lam')
@@ -236,27 +235,25 @@ def get_intersections(instance, m, u_N, S, **kwargs):
 
     m_S.setObjective(m_S._lam)
 
-    constrs = []
-    for i in S:
-        constr = m_S.addConstr(m_S._lam <= m_S._u[i] - u_N[i])
-        constrs.append(constr)
-    m_S.optimize()
     try:
-        assert m_S._lam.X > 0
+        constrs = []
+        for i in S:
+            constr = m_S.addConstr(m_S._lam <= m_S._u[i] - u_N[i])
+            constrs.append(constr)
+        m_S.optimize()
+        assert m_S._lam.X > kwargs.get('epsTh', 0)
         m_S.remove(constrs)
         m_S.reset()
     except (AttributeError, AssertionError):
         return None
 
-    constr_names_to_indices = {constr.ConstrName: i for i, constr in enumerate(m.getConstrs())}
-    basis_mat, basis_varnames = get_basis(m, constr_names_to_indices)
-
     min_lam, max_lam = 1, 1
-
     intersections = []
     for var in m.getVars():
 
-        if var.VarName in basis_varnames:
+        if var.VBasis == BASIC:
+            continue
+        if var.VarName in basis_varnames:  # gurobi gimmick because of CBasis
             continue
 
         row_indices, values = [], []
@@ -287,13 +284,13 @@ def get_intersections(instance, m, u_N, S, **kwargs):
                 constrs.append(constr)
         m_S.optimize()
         if m_S.Status == 2:
-            intersections.append((var.VarName, m_S._lam.X))
             if m_S._lam.X < min_lam:
                 min_lam = m_S._lam.X
             if m_S._lam.X > max_lam:
                 max_lam = m_S._lam.X
             if min_lam/max_lam < kwargs.get('lamRatTh', 1E-9):
                 return None
+            intersections.append((var.VarName, m_S._lam.X))
         m_S.remove(constrs)
         m_S.reset()
 
@@ -319,14 +316,14 @@ def get_basis(m, constr_names_to_indices):
                 col_indices.append(col_index)
                 values.append(coeff)
             col_index += 1
-    for constr in m.getConstrs():
+
+    for constr in m.getConstrs():  # gurobi gimmick because of CBasis
         if constr.CBASIS == BASIC:
             row = m.getRow(constr)
             for j in range(row.size()):
                 var = row.getVar(j)
-                varname = var.VarName
-                if 's' in varname:
-                    basis_varnames.append(varname)
+                if var.VarName[0] == 's':
+                    basis_varnames.append(var.VarName)
                     col = m.getCol(var)
                     for i in range(col.size()):
                         coeff, constrname = col.getCoeff(i), col.getConstr(i).ConstrName
@@ -334,6 +331,7 @@ def get_basis(m, constr_names_to_indices):
                         col_indices.append(col_index)
                         values.append(coeff)
                     col_index += 1
+                    break
 
     basis_mat = ss.csr_matrix((values, (row_indices, col_indices)), shape=(m.NumConstrs, m.NumConstrs))
 
