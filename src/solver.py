@@ -321,6 +321,21 @@ def get_basis(m, constr_names_to_indices):
                 col_indices.append(col_index)
                 values.append(coeff)
             col_index += 1
+    for constr in m.getConstrs():
+        if constr.CBASIS == BASIC:
+            row = m.getRow(constr)
+            for j in range(row.size()):
+                var = row.getVar(j)
+                varname = var.VarName
+                if 'C' in varname:
+                    basis_varnames.append(varname)
+                    col = m.getCol(var)
+                    for i in range(col.size()):
+                        coeff, constrname = col.getCoeff(i), col.getConstr(i).ConstrName
+                        row_indices.append(constr_names_to_indices[constrname])
+                        col_indices.append(col_index)
+                        values.append(coeff)
+                    col_index += 1
 
     basis_mat = ss.csr_matrix((values, (row_indices, col_indices)), shape=(m.NumConstrs, m.NumConstrs))
 
