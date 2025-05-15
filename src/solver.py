@@ -35,7 +35,7 @@ def main(instance, modelname, **kwargs):
     elif objective == 'maximin':
         z = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
         for i in N:
-            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
+            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[-1]')
             m.addConstr(m._u[i] - s == z)
         m.setObjective(z)
     else:
@@ -64,7 +64,7 @@ def main(instance, modelname, **kwargs):
     if kwargs.get('IndRat', True):
         for i in N:
             cutCount += 1
-            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
+            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(cutCount))
             m.addConstr(m._u[i] - s == max(V[i][j]/A[0][j] for j in J))
 
     # m.reset()
@@ -91,7 +91,7 @@ def main(instance, modelname, **kwargs):
         intersections = get_intersections(instance, m, u_N, S, LamRatTh=0)
         if intersections is not None:
             cutCount += 1
-            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
+            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(cutCount))
             m.addConstr(gp.quicksum(m.getVarByName(varname) / lam for varname, lam in intersections) - s == 1)
             min_lam = min(lam for _, lam in intersections)
             max_lam = max(lam for _, lam in intersections)
@@ -103,7 +103,7 @@ def main(instance, modelname, **kwargs):
             intersections = get_intersections(instance, m, u_N, prev_S, LamRatTh=1E-6)
             if intersections is not None:
                 cutCount += 1
-                s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
+                s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(cutCount))
                 m.addConstr(gp.quicksum(m.getVarByName(varname)/lam for varname, lam in intersections) - s == 1)
                 min_lam = min(lam for _, lam in intersections)
                 max_lam = max(lam for _, lam in intersections)
@@ -327,7 +327,7 @@ def get_basis(m, constr_names_to_indices):
             for j in range(row.size()):
                 var = row.getVar(j)
                 varname = var.VarName
-                if 'C' in varname:
+                if 's' in varname:
                     basis_varnames.append(varname)
                     col = m.getCol(var)
                     for i in range(col.size()):
