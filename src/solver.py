@@ -87,6 +87,7 @@ def main(instance, modelname, **kwargs):
 
         print('iterCount: {0}'.format(iterCount))
 
+        print('... extracting basis.')
         constr_names_to_indices = {constr.ConstrName: i for i, constr in enumerate(m.getConstrs())}
         basis_mat, basis_varnames = get_basis(m, constr_names_to_indices)
 
@@ -109,7 +110,7 @@ def main(instance, modelname, **kwargs):
                 continue
             intersections = get_intersections(
                 instance, m, constr_names_to_indices, basis_mat, basis_varnames, u_N, prev_S,
-                epsTh=1E-1, lamRatTh=1E-6
+                epsTh=1E-3, lamRatTh=1E-6
             )
             if intersections is not None:
                 cutCount += 1
