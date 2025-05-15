@@ -60,7 +60,7 @@ def main(instance, modelname, **kwargs):
     blocking_EpsLimit = kwargs.get('blocking_EpsLimit', 0)
     blocking_Starts = {tuple(sorted(N))}
 
-    m.reset()
+    # m.reset()
     if kwargs.get('IndRat', True):
         for i in N:
             cutCount += 1
@@ -87,32 +87,30 @@ def main(instance, modelname, **kwargs):
         print('iterCount: {0}'.format(blocking_IterCount))
 
         print('... adding cut for current S.')
-        intersections = get_intersections(instance, m, u_N, S, LamTh=0)
-        min_lam = min(intersections, key=lambda w: w[1])
-        max_lam = max(intersections, key=lambda w: w[1])
+        intersections = get_intersections(instance, m, u_N, S, LamRatTh=0)
         if intersections is not None:
             cutCount += 1
             s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
             m.addConstr(gp.quicksum(m.getVarByName(varname) / lam for varname, lam in intersections) - s == 1)
-        print('...... added cut for curr. S with coeff. ratio {0}.'.format(min_lam / max_lam))
+            min_lam = min(lam for _, lam in intersections)
+            max_lam = max(lam for _, lam in intersections)
+            print('...... added cut for curr. S with coeff. ratio {0}.'.format(min_lam / max_lam))
         print('... adding cuts for previous S.')
         for ct, prev_S in enumerate(blocking_Starts):
             if prev_S == S:
                 continue
-            intersections = get_intersections(instance, m, u_N, prev_S, LamTh=0)
+            intersections = get_intersections(instance, m, u_N, prev_S, LamRatTh=1E-6)
             if intersections is not None:
-                min_lam = min(intersections, key=lambda w: w[1])
-                max_lam = max(intersections, key=lambda w: w[1])
-                if min_lam / max_lam < 1E-6:
-                    continue
                 cutCount += 1
                 s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
                 m.addConstr(gp.quicksum(m.getVarByName(varname)/lam for varname, lam in intersections) - s == 1)
+                min_lam = min(lam for _, lam in intersections)
+                max_lam = max(lam for _, lam in intersections)
                 print('...... added cut for prev. S no. {0}. with coeff. ratio {1}'.format(ct, min_lam/max_lam))
         blocking_Starts.add(S)
         print('... solving model.')
 
-        m.reset()
+        # m.reset()
         m.optimize()
         x_N = {j: m._x[j].X for j in J}
         u_N = {i: m._u[i].X for i in N}
@@ -244,7 +242,7 @@ def get_intersections(instance, m, u_N, S, **kwargs):
         constrs.append(constr)
     m_S.optimize()
     try:
-        assert m_S._lam.X >= kwargs.get('LamTh', 0)
+        assert m_S._lam.X > 0
         m_S.remove(constrs)
         m_S.reset()
     except (AttributeError, AssertionError):
@@ -252,6 +250,8 @@ def get_intersections(instance, m, u_N, S, **kwargs):
 
     constr_names_to_indices = {constr.ConstrName: i for i, constr in enumerate(m.getConstrs())}
     basis_mat, basis_varnames = get_basis(m, constr_names_to_indices)
+
+    min_lam, max_lam = 1, 1
 
     intersections = []
     for var in m.getVars():
@@ -288,6 +288,12 @@ def get_intersections(instance, m, u_N, S, **kwargs):
         m_S.optimize()
         if m_S.Status == 2:
             intersections.append((var.VarName, m_S._lam.X))
+            if m_S._lam.X < min_lam:
+                min_lam = m_S._lam.X
+            if m_S._lam.X > m_S._lam.X:
+                max_lam = m_S._lam.X
+            if min_lam/max_lam < kwargs.get('LamRatTh', 1E-9):
+                return None
         m_S.remove(constrs)
         m_S.reset()
 

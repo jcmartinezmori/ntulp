@@ -14,7 +14,7 @@ from pathlib import Path
 from playwright.async_api import async_playwright
 
 objective = 'maximin'
-blocking_TimeLimit = 600 * 1
+blocking_TimeLimit = 600 * 3
 blocking_EpsLimit = 0
 modelname = 'v2-{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
 blocking_IterCountStart = 0
