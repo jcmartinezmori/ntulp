@@ -61,7 +61,7 @@ def main(instance, modelname, **kwargs):
     blocking_Starts = {tuple(sorted(N))}
 
     m.reset()
-    if kwargs.get('IndRat', False):
+    if kwargs.get('IndRat', True):
         for i in N:
             cutCount += 1
             s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
