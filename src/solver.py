@@ -9,7 +9,10 @@ from src.config import *
 def main(instance, modelname, **kwargs):
 
     ts = time.time()
-    slack_ct = 0
+    slackCount = 0
+    cutCount = 0
+    iterCount = -1
+    eps, S, = -1, None
 
     N, J, K, A, B, V = instance
 
@@ -25,12 +28,12 @@ def main(instance, modelname, **kwargs):
     m._x = m.addVars(J, vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='x')
     m._u = m.addVars(N, vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='u')
     for k in K:
-        s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s-{0}'.format(slack_ct))
-        slack_ct += 1
+        s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(slackCount))
+        slackCount += 1
         m.addConstr(gp.quicksum(A[k][j] * m._x[j] for j in J) + s == sum(B[i][k] for i in N))
     for i in N:
-        s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s-{0}'.format(slack_ct))
-        slack_ct += 1
+        s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(slackCount))
+        slackCount += 1
         m.addConstr(m._u[i] + s == gp.quicksum(V[i][j] * m._x[j] for j in J))
 
     objective = kwargs.get('objective', 'utilitarian')
@@ -39,98 +42,88 @@ def main(instance, modelname, **kwargs):
     elif objective == 'maximin':
         z = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='z')
         for i in N:
-            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s-{0}'.format(slack_ct))
-            slack_ct += 1
+            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(slackCount))
+            slackCount += 1
             m.addConstr(z + s == m._u[i])
         m.setObjective(z)
     else:
         raise Exception('objective {0} not supported'.format(objective))
 
-    cutCount = 0
-    blocking_IterCount = -1
-    eps, S, = -1, None
-
     m.optimize()
     x_N = {j: m._x[j].X for j in J}
     u_N = {i: m._u[i].X for i in N}
     kappa = m.getAttr('KappaExact')
 
-    tf = time.time()
-    tt = tf - ts
-    out = x_N, u_N, tt, cutCount, eps, S, kappa
-    with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
+    out = x_N, u_N, time.time() - ts, cutCount, eps, S, kappa
+    with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, iterCount), 'wb') as file:
         pickle.dump(out, file)
 
-    blocking_TimeLimit = kwargs.get('blocking_TimeLimit', 60)
-    blocking_IterLimit = kwargs.get('blocking_IterLimit', 10)
-    blocking_EpsLimit = kwargs.get('blocking_EpsLimit', 0)
-    blocking_Starts = {tuple(sorted(N))}
-
-    if kwargs.get('IndRat', True):
+    if kwargs.get('indRat', True):
         for i in N:
-            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s-{0}'.format(slack_ct))
-            slack_ct += 1
+            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(slackCount))
+            slackCount += 1
             m.addConstr(m._u[i] - s == max(V[i][j]/A[0][j] for j in J))
             cutCount += 1
 
-    # m.reset()
     m.optimize()
     x_N = {j: m._x[j].X for j in J}
     u_N = {i: m._u[i].X for i in N}
     kappa = m.getAttr('KappaExact')
 
-    blocking_IterCount += 1
-    eps, S = get_blocking(instance, u_N, DepthTimeLimit=blocking_TimeLimit, blocking_Starts=blocking_Starts)
+    timeLimit = kwargs.get('timeLimit', 60)
+    iterLimit = kwargs.get('iterLimit', 10)
+    epsLimit = kwargs.get('epsLimit', 0)
+    Starts = {tuple(sorted(N))}
+
+    iterCount += 1
+    eps, S = get_blocking(instance, u_N, timeLimit=timeLimit, Starts=Starts)
     S = tuple(sorted(S))
 
-    tf = time.time()
-    tt = tf - ts
-    out = x_N, u_N, tt, cutCount, eps, S, kappa
-    with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
+    out = x_N, u_N, time.time() - ts, cutCount, eps, S, kappa
+    with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, iterCount), 'wb') as file:
         pickle.dump(out, file)
 
-    while eps > blocking_EpsLimit and blocking_IterCount <= blocking_IterLimit:
+    while eps > epsLimit and iterCount <= iterLimit:
 
-        print('iterCount: {0}'.format(blocking_IterCount))
+        print('iterCount: {0}'.format(iterCount))
 
         print('... adding cut for current S.')
-        intersections = get_intersections(instance, m, u_N, S, LamRatTh=0)
+        intersections = get_intersections(instance, m, u_N, S, lamRatTh=0)
         if intersections is not None:
             cutCount += 1
-            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(cutCount))
+            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(slackCount))
+            slackCount += 1
             m.addConstr(gp.quicksum(m.getVarByName(varname) / lam for varname, lam in intersections) - s == 1)
             min_lam = min(lam for _, lam in intersections)
             max_lam = max(lam for _, lam in intersections)
             print('...... added cut for curr. S with coeff. ratio {0}.'.format(min_lam / max_lam))
         print('... adding cuts for previous S.')
-        for ct, prev_S in enumerate(blocking_Starts):
+        for prev_S in Starts:
             if prev_S == S:
                 continue
-            intersections = get_intersections(instance, m, u_N, prev_S, LamRatTh=1E-6)
+            intersections = get_intersections(instance, m, u_N, prev_S, lamRatTh=1E-6)
             if intersections is not None:
                 cutCount += 1
-                s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(cutCount))
-                m.addConstr(gp.quicksum(m.getVarByName(varname)/lam for varname, lam in intersections) - s == 1)
+                s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(slackCount))
+                slackCount += 1
+                m.addConstr(gp.quicksum(m.getVarByName(varname) / lam for varname, lam in intersections) - s == 1)
                 min_lam = min(lam for _, lam in intersections)
                 max_lam = max(lam for _, lam in intersections)
-                print('...... added cut for prev. S no. {0}. with coeff. ratio {1}'.format(ct, min_lam/max_lam))
-        blocking_Starts.add(S)
+                print('...... added cut for prev. S with coeff. ratio {0}'.format(min_lam/max_lam))
+        Starts.add(S)
         print('... solving model.')
 
-        # m.reset()
         m.optimize()
         x_N = {j: m._x[j].X for j in J}
         u_N = {i: m._u[i].X for i in N}
         kappa = m.getAttr('KappaExact')
 
-        blocking_IterCount += 1
-        eps, S = get_blocking(instance, u_N, DepthTimeLimit=blocking_TimeLimit, blocking_Starts=blocking_Starts)
+        iterCount += 1
+        eps, S = get_blocking(instance, u_N, timeLimit=timeLimit, Starts=Starts)
         S = tuple(sorted(S))
 
-        tf = time.time()
-        tt = tf - ts
-        out = x_N, u_N, tt, cutCount, eps, S, kappa
-        with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'wb') as file:
+        out = x_N, u_N, time.time() - ts, cutCount, eps, S, kappa
+        with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, iterCount), 'wb') as file:
             pickle.dump(out, file)
 
     return out
@@ -139,8 +132,7 @@ def main(instance, modelname, **kwargs):
 def get_blocking(instance, u_N, **kwargs):
 
     N, J, K, A, B, V = instance
-    Starts = kwargs.get('blocking_Starts', {tuple(sorted(N))})
-    Starts = Starts.copy()
+    Starts = kwargs.get('Starts', {tuple(sorted(N))}).copy()
 
     cts = {i: 0 for i in N}
     for Start in Starts:
@@ -198,12 +190,12 @@ def get_blocking(instance, u_N, **kwargs):
             else:
                 m_S._y[i].Start = 0
 
-    m_S.Params.TimeLimit = kwargs.get('DiversityTimeLimit', 300)
+    m_S.Params.TimeLimit = kwargs.get('divTimeLimit', 300)
     m_S.setObjective(m_S._zet)
     m_S.optimize()
     m_S.addConstr(m_S._zet >= (1-1E-3) * m_S._zet.X)
 
-    m_S.Params.TimeLimit = kwargs.get('DepthTimeLimit', 300)
+    m_S.Params.TimeLimit = kwargs.get('timeLimit', 300)
     m_S.setObjective(m_S._eps)
     m_S.optimize()
     # m_S.addConstr(m_S._eps >= (1-1E-3) * m_S._eps.X)
@@ -298,9 +290,9 @@ def get_intersections(instance, m, u_N, S, **kwargs):
             intersections.append((var.VarName, m_S._lam.X))
             if m_S._lam.X < min_lam:
                 min_lam = m_S._lam.X
-            if m_S._lam.X > m_S._lam.X:
+            if m_S._lam.X > max_lam:
                 max_lam = m_S._lam.X
-            if min_lam/max_lam < kwargs.get('LamRatTh', 1E-9):
+            if min_lam/max_lam < kwargs.get('lamRatTh', 1E-9):
                 return None
         m_S.remove(constrs)
         m_S.reset()
