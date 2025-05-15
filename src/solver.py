@@ -73,7 +73,7 @@ def main(instance, modelname, **kwargs):
     kappa = m.getAttr('KappaExact')
 
     blocking_IterCount += 1
-    eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit, blocking_Starts=blocking_Starts)
+    eps, S = get_blocking(instance, u_N, DepthTimeLimit=blocking_TimeLimit, blocking_Starts=blocking_Starts)
     S = tuple(sorted(S))
 
     tf = time.time()
@@ -119,7 +119,7 @@ def main(instance, modelname, **kwargs):
         kappa = m.getAttr('KappaExact')
 
         blocking_IterCount += 1
-        eps, S = get_blocking(instance, u_N, TimeLimit=blocking_TimeLimit, blocking_Starts=blocking_Starts)
+        eps, S = get_blocking(instance, u_N, DepthTimeLimit=blocking_TimeLimit, blocking_Starts=blocking_Starts)
         S = tuple(sorted(S))
 
         tf = time.time()
@@ -193,12 +193,12 @@ def get_blocking(instance, u_N, **kwargs):
             else:
                 m_S._y[i].Start = 0
 
-    m_S.Params.TimeLimit = 0.5 * kwargs.get('TimeLimit', 60)
+    m_S.Params.TimeLimit = kwargs.get('DiversityTimeLimit', 300)
     m_S.setObjective(m_S._zet)
     m_S.optimize()
     m_S.addConstr(m_S._zet >= (1-1E-3) * m_S._zet.X)
 
-    m_S.Params.TimeLimit = 0.5 * kwargs.get('TimeLimit', 60)
+    m_S.Params.TimeLimit = kwargs.get('DepthTimeLimit', 300)
     m_S.setObjective(m_S._eps)
     m_S.optimize()
     # m_S.addConstr(m_S._eps >= (1-1E-3) * m_S._eps.X)
