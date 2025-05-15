@@ -4,22 +4,22 @@ import src.helper as helper
 import src.solver as solver
 from src.config import *
 
-objective = 'utilitarian'
-blocking_IterLimit = 100
-blocking_TimeLimit = 600 * 1
-blocking_EpsLimit = 0
-modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
+objective = 'maximin'
+iterLimit = 100
+timeLimit = 300 * 1
+epsLimit = 0
+modelname = '{0}-{1}-{2}'.format(objective, timeLimit, epsLimit)
 
-solve = True
+solve = False
 if solve:
     with open('{0}/results/instances/{1}.pkl'.format(RELPATH, FILENAME), 'rb') as file:
         instance = pickle.load(file)
     N, J, K, A, B, V = instance
     solver.main(
         instance, modelname, objective=objective,
-        blocking_TimeLimit=blocking_TimeLimit,
-        blocking_IterLimit=blocking_IterLimit,
-        blocking_EpsLimit=blocking_EpsLimit
+        iterLimit=iterLimit,
+        timeLimit=timeLimit,
+        epsLimit=epsLimit
     )
 
 plot_map = False
