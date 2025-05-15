@@ -9,34 +9,39 @@ from src.config import *
 def main(instance, modelname, **kwargs):
 
     ts = time.time()
+    slack_ct = 0
 
     N, J, K, A, B, V = instance
 
     m = gp.Model()
     m.Params.OutputFlag = kwargs.get('OutputFlag', 1)
-    # m.Params.CrossoverBasis = kwargs.get('CrossoverBasis', 1)
-    # m.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-5)
+    m.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-6)
     m.Params.Method = kwargs.get('Method', 1)
     m.Params.NumericFocus = kwargs.get('NumericFocus', 3)
+    m.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-6)
     m.Params.Presolve = kwargs.get('Presolve', 0)
-    # m.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-9)
     m.ModelSense = -1
 
     m._x = m.addVars(J, vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='x')
     m._u = m.addVars(N, vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='u')
     for k in K:
-        m.addConstr(gp.quicksum(A[k][j] * m._x[j] for j in J) == sum(B[i][k] for i in N))
+        s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s-{0}'.format(slack_ct))
+        slack_ct += 1
+        m.addConstr(gp.quicksum(A[k][j] * m._x[j] for j in J) + s == sum(B[i][k] for i in N))
     for i in N:
-        m.addConstr(m._u[i] == gp.quicksum(V[i][j] * m._x[j] for j in J))
+        s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s-{0}'.format(slack_ct))
+        slack_ct += 1
+        m.addConstr(m._u[i] + s == gp.quicksum(V[i][j] * m._x[j] for j in J))
 
     objective = kwargs.get('objective', 'utilitarian')
     if objective == 'utilitarian':
         m.setObjective((gp.quicksum(m._u[i] for i in N))/len(N))
     elif objective == 'maximin':
-        z = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
+        z = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='z')
         for i in N:
-            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[-1]')
-            m.addConstr(m._u[i] - s == z)
+            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s-{0}'.format(slack_ct))
+            slack_ct += 1
+            m.addConstr(z + s == m._u[i])
         m.setObjective(z)
     else:
         raise Exception('objective {0} not supported'.format(objective))
@@ -63,9 +68,10 @@ def main(instance, modelname, **kwargs):
 
     if kwargs.get('IndRat', True):
         for i in N:
-            cutCount += 1
-            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(cutCount))
+            s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s-{0}'.format(slack_ct))
+            slack_ct += 1
             m.addConstr(m._u[i] - s == max(V[i][j]/A[0][j] for j in J))
+            cutCount += 1
 
     # m.reset()
     m.optimize()
