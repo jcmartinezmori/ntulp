@@ -88,7 +88,7 @@ def main(instance, modelname, **kwargs):
 
         print('... adding cut for current S.')
         intersections = get_intersections(instance, m, u_N, S, LamTh=0)
-        print(intersections)
+        print(min(intersections, key=lambda w: w[1]), max(intersections, key=lambda w: w[1]))
         if intersections is not None:
             cutCount += 1
             s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
@@ -98,6 +98,7 @@ def main(instance, modelname, **kwargs):
             if prev_S == S:
                 continue
             intersections = get_intersections(instance, m, u_N, prev_S, LamTh=1E-1)
+            print(min(intersections, key=lambda w: w[1]), max(intersections, key=lambda w: w[1]))
             if intersections is not None:
                 print('...... adding cut for previous S no. {0}.'.format(ct))
                 cutCount += 1
