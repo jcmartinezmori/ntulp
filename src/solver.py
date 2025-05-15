@@ -18,6 +18,7 @@ def main(instance, modelname, **kwargs):
     # m.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-5)
     m.Params.Method = kwargs.get('Method', 1)
     m.Params.NumericFocus = kwargs.get('NumericFocus', 3)
+    m.Params.Presolve = kwargs.get('Presolve', 0)
     # m.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-9)
     m.ModelSense = -1
 
@@ -60,13 +61,13 @@ def main(instance, modelname, **kwargs):
     blocking_EpsLimit = kwargs.get('blocking_EpsLimit', 0)
     blocking_Starts = {tuple(sorted(N))}
 
-    # m.reset()
     if kwargs.get('IndRat', True):
         for i in N:
             cutCount += 1
             s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
             m.addConstr(m._u[i] - s == max(V[i][j]/A[0][j] for j in J))
 
+    m.reset()
     m.optimize()
     x_N = {j: m._x[j].X for j in J}
     u_N = {i: m._u[i].X for i in N}
@@ -110,7 +111,7 @@ def main(instance, modelname, **kwargs):
         blocking_Starts.add(S)
         print('... solving model.')
 
-        # m.reset()
+        m.reset()
         m.optimize()
         x_N = {j: m._x[j].X for j in J}
         u_N = {i: m._u[i].X for i in N}
@@ -222,6 +223,7 @@ def get_intersections(instance, m, u_N, S, **kwargs):
     # m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-9)
     m_S.Params.Method = kwargs.get('Method', 1)
     m_S.Params.NumericFocus = kwargs.get('NumericFocus', 3)
+    m_S.Params.Presolve = kwargs.get('Presolve', 0)
     # m_S.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-9)
     m_S.ModelSense = -1
 
