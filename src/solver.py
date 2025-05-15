@@ -22,7 +22,7 @@ def main(instance, modelname, **kwargs):
     m.Params.Method = kwargs.get('Method', 1)
     m.Params.NumericFocus = kwargs.get('NumericFocus', 3)
     m.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-6)
-    m.Params.Presolve = kwargs.get('Presolve', 0)
+    # m.Params.Presolve = kwargs.get('Presolve', 0)
     m.ModelSense = -1
 
     m._x = m.addVars(J, vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='x')
