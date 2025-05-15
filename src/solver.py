@@ -67,7 +67,7 @@ def main(instance, modelname, **kwargs):
             s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
             m.addConstr(m._u[i] - s == max(V[i][j]/A[0][j] for j in J))
 
-    m.reset()
+    # m.reset()
     m.optimize()
     x_N = {j: m._x[j].X for j in J}
     u_N = {i: m._u[i].X for i in N}
@@ -111,7 +111,7 @@ def main(instance, modelname, **kwargs):
         blocking_Starts.add(S)
         print('... solving model.')
 
-        m.reset()
+        # m.reset()
         m.optimize()
         x_N = {j: m._x[j].X for j in J}
         u_N = {i: m._u[i].X for i in N}
@@ -258,7 +258,7 @@ def get_intersections(instance, m, u_N, S, **kwargs):
     intersections = []
     for var in m.getVars():
 
-        if var.VBasis == BASIC:
+        if var.VarName in basis_varnames:
             continue
 
         row_indices, values = [], []
