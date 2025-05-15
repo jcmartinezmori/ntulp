@@ -88,6 +88,7 @@ def main(instance, modelname, **kwargs):
 
         print('... adding cut for current S.')
         intersections = get_intersections(instance, m, u_N, S, LamTh=0)
+        print(intersections)
         if intersections is not None:
             cutCount += 1
             s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY)
