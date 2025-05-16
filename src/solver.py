@@ -45,7 +45,7 @@ def main(instance, modelname, **kwargs):
             s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(slackCount))
             slackCount += 1
             m.addConstr(z + s == m._u[i])
-        m.setObjective(z)
+        m.setObjective(z + 1E-5*(gp.quicksum(m._u[i] for i in N))/len(N))
     else:
         raise Exception('objective {0} not supported'.format(objective))
 
@@ -119,7 +119,7 @@ def main(instance, modelname, **kwargs):
                 m.addConstr(gp.quicksum(m.getVarByName(varname) / lam for varname, lam in intersections) - s == 1)
                 min_lam = min(lam for _, lam in intersections)
                 max_lam = max(lam for _, lam in intersections)
-                print('...... added cut for prev. S with coeff. ratio {0}'.format(min_lam/max_lam))
+                print('...... added cut for prev. S with coeff. ratio {0}.'.format(min_lam/max_lam))
         Starts.add(S)
         print('... solving model.')
 
@@ -266,12 +266,12 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat, basis_var
         col = ss.csr_matrix((values, (row_indices, np.zeros_like(row_indices))), shape=(m.NumConstrs, 1))
         inv_basis_mat_col = ss.linalg.spsolve(basis_mat, col)
 
+        # r = {v.VarName: 0 for v in m.getVars()}
         r = {
             basis_varname: -coeff for coeff, basis_varname in zip(inv_basis_mat_col, basis_varnames)
             if basis_varname[0] == 'u'
         }
-        # r = {v.VarName: 0 for v in m.getVars()}
-        # r[var.VarName] = 1
+        r[var.VarName] = 1
         # for i, basis_varname in enumerate(basis_varnames):
         #     r[basis_varname] = -inv_basis_mat_col[i]
 
