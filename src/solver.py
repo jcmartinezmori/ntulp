@@ -21,7 +21,7 @@ def main(instance, modelname, **kwargs):
     m.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-6)
     m.Params.Method = kwargs.get('Method', 1)
     m.Params.NumericFocus = kwargs.get('NumericFocus', 3)
-    m.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-6)
+    m.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-9)
     # m.Params.Presolve = kwargs.get('Presolve', 0)
     m.ModelSense = -1
 
