@@ -91,6 +91,7 @@ def main(instance, modelname, **kwargs):
         print('... extracting basis.')
         constr_names_to_indices = {constr.ConstrName: i for i, constr in enumerate(m.getConstrs())}
         basis_mat, basis_varnames = get_basis(m, constr_names_to_indices)
+        print('...... extracted basis of shape {0}.'.format(basis_mat.shape))
         with warnings.catch_warnings():
             warnings.simplefilter("error", ss.linalg.MatrixRankWarning)
             try:
@@ -99,7 +100,7 @@ def main(instance, modelname, **kwargs):
                 ss.save_npz(
                     '{0}/results/solutions/{1}_{2}_{3}.npz'.format(RELPATH, FILENAME, modelname, iterCount), basis_mat
                 )
-        print('...... extracted basis of shape {0}.'.format(basis_mat.shape))
+            print('......... stored seemingly singular basis.')
 
         print('... adding cut for current S.')
         intersections = get_intersections(
