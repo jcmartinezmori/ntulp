@@ -46,7 +46,7 @@ def main(instance, modelname, **kwargs):
             s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(slackCount))
             slackCount += 1
             m.addConstr(z + s == m._u[i])
-        m.setObjective(z + 1E-5*(gp.quicksum(m._u[i] for i in N))/len(N))
+        m.setObjective(z + 1E-6*(gp.quicksum(m._u[i] for i in N))/len(N))
     else:
         raise Exception('objective {0} not supported'.format(objective))
 
