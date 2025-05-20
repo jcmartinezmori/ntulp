@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import scipy.sparse as ss
 import time
+import warnings
 from src.config import *
 
 
@@ -90,6 +91,14 @@ def main(instance, modelname, **kwargs):
         print('... extracting basis.')
         constr_names_to_indices = {constr.ConstrName: i for i, constr in enumerate(m.getConstrs())}
         basis_mat, basis_varnames = get_basis(m, constr_names_to_indices)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", ss.linalg.MatrixRankWarning)
+            try:
+                _ = ss.linalg.spsolve(basis_mat, np.zeros(basis_mat.shape[0]))
+            except ss.linalg.MatrixRankWarning:
+                ss.save_npz(
+                    '{0}/results/solutions/{1}_{2}_{3}.npz'.format(RELPATH, FILENAME, modelname, iterCount), basis_mat
+                )
         print('...... extracted basis of shape {0}.'.format(basis_mat.shape))
 
         print('... adding cut for current S.')
@@ -111,7 +120,7 @@ def main(instance, modelname, **kwargs):
                 continue
             intersections = get_intersections(
                 instance, m, constr_names_to_indices, basis_mat, basis_varnames, u_N, prev_S,
-                epsTh=1E-3, lamRatTh=1E-7
+                epsTh=1E-3, lamRatTh=1E-6
             )
             if intersections is not None:
                 cutCount += 1
@@ -203,9 +212,18 @@ def get_blocking(instance, u_N, **kwargs):
     m_S.Params.TimeLimit = kwargs.get('delTimeLimit', 300)
     m_S.setObjective(m_S._del)
     m_S.optimize()
-    m_S.addConstr(m_S._del >= (1-1E-3) * m_S._del.X)
+
+    m_S.NumStart += 1
+    Start = {i for i in N if m_S._y[i].X > 1/2}
+    m_S.Params.StartNumber += 1
+    for i in N:
+        if i in Start:
+            m_S._y[i].Start = 1
+        else:
+            m_S._y[i].Start = 0
 
     m_S.Params.TimeLimit = kwargs.get('timeLimit', 300)
+    m_S.addConstr(m_S._del >= (1-1E-3) * m_S._del.X)
     m_S.setObjective(m_S._eps)
     m_S.optimize()
 
