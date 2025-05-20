@@ -100,7 +100,7 @@ def main(instance, modelname, **kwargs):
                 ss.save_npz(
                     '{0}/results/solutions/{1}_{2}_{3}.npz'.format(RELPATH, FILENAME, modelname, iterCount), basis_mat
                 )
-            print('......... stored seemingly singular basis.')
+                print('......... stored seemingly singular basis.')
 
         print('... adding cut for current S.')
         intersections = get_intersections(
