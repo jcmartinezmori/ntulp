@@ -227,7 +227,7 @@ def get_blocking(instance, u_N, **kwargs):
             m_S._y[i].Start = 0
 
     m_S.Params.TimeLimit = kwargs.get('timeLimit', 300)
-    m_S.addConstr(m_S._del >= (1-1E-3) * m_S._del.X)
+    m_S.addConstr(m_S._del >= (1-1E-2) * m_S._del.X)
     m_S.setObjective(m_S._eps)
     m_S.optimize()
 
