@@ -4,6 +4,9 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import pickle
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import src.solver as solver
 from src.config import *
 
 
@@ -45,13 +48,13 @@ def plot_convergence():
 
     objectives = ['maximin', 'utilitarian']
     blocking_IterLimit = 100
-    blocking_TimeLimits = [600, 1200, 1800]
+    blocking_TimeLimits = [300, 600, 900]
     blocking_EpsLimit = 0
 
     data = []
     for objective in objectives:
         for blocking_TimeLimit in blocking_TimeLimits:
-            modelname = 'v2-{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
+            modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
             for blocking_IterCount in range(blocking_IterLimit + 1):
                 try:
                     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(
@@ -62,39 +65,37 @@ def plot_convergence():
                         mxmn_obj = min(u_N.values())
                         data.append(
                             (
-                                objective, blocking_TimeLimit, blocking_IterCount, tt,
-                                cutct, eps, kappa, util_obj, mxmn_obj
+                                objective, blocking_TimeLimit, blocking_IterCount,
+                                tt, cutct, eps, kappa, util_obj, mxmn_obj
                             )
                         )
                 except FileNotFoundError:
-                    continue
+                    pass
 
     df = pd.DataFrame(
         data,
         columns=['objective', 'timelimit', 'itct', 'tt', 'cutct', 'eps', 'kappa', 'util_obj', 'mxmn_obj']
     )
-    df['util_obj'] /= 3600
+    df['util_obj'] /= len(u_N)
     df['tt'] /= (60 * 60)
 
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
-
-    color_map = {600: HEXYELLOW, 1200: HEXBLUE, 1800: HEXVERMILLION}
-    marker_map = {600: 'circle', 1200: 'square', 1800: 'diamond'}
-    subplot_map = {'maximin': 1, 'utilitarian': 2}
+    color_map = {300: HEXYELLOW, 600: HEXBLUE, 900: HEXVERMILLION}
+    marker_map = {300: 'circle', 600: 'square', 900: 'diamond'}
+    subplot_map = {objective: idx + 1 for idx, objective in enumerate(objectives)}
 
     plots = (
-        ('eps', r'$\textrm{Least Objection (}\epsilon\textrm{)}$'),
-        ('kappa', r'$\textrm{Basis Condition Number (}\kappa\textrm{)}$'),
-        ('cutct', r'$\textrm{Number of Cuts}$'),
-        ('tt', r'$\textrm{Elapsed time [hr.]}$'),
-        ('util_obj', r'$\textrm{Utilitarian Social Welfare}$'),
-        ('mxmn_obj', r'$\textrm{Maximin Social Welfare}$')
+        ('eps', r'$\large \textrm{Least Objection (}\epsilon\textrm{)}$'),
+        ('kappa', r'$\large \textrm{Basis Condition Number (}\kappa\textrm{)}$'),
+        ('cutct', r'$\large \textrm{Number of Cuts}$'),
+        ('tt', r'$\large \textrm{Elapsed time [hr.]}$'),
+        ('util_obj', r'$\large \textrm{Utilitarian Social Welfare}$'),
+        ('mxmn_obj', r'$\large \textrm{Maximin Social Welfare}$')
     )
+
     for col, title in plots:
         fig = make_subplots(
-            rows=1, cols=2, shared_xaxes=True, shared_yaxes=True,
-            subplot_titles=(r'$\textrm{Maximin Objective}$', r'$\textrm{Utilitarian Objective}$')
+            rows=1, cols=len(objectives), shared_xaxes=True, shared_yaxes=True,
+            subplot_titles=(r'$\Large \textrm{Maximin Service Plan}$', r'$\Large \textrm{Utilitarian Service Plan}$')
         )
         for (objective, timelimit), group_df in df.groupby(['objective', 'timelimit']):
             fig.add_trace(
@@ -102,140 +103,140 @@ def plot_convergence():
                     x=group_df['itct'],
                     y=group_df[col],
                     mode='lines+markers',
-                    name='Time Limit: {0:.0f} min.'.format(timelimit/60),
+                    name='MIP Timeout: {0:.0f} min.'.format(timelimit/60),
                     showlegend=True if subplot_map[objective] == 1 else False,
-                    line=dict(color=color_map[timelimit], dash='solid'),
-                    marker=dict(color=color_map[timelimit], symbol=marker_map[timelimit], size=6)
+                    line={'color': color_map[timelimit], 'dash': 'solid'},
+                    marker={'color': color_map[timelimit], 'symbol': marker_map[timelimit], 'size': 6}
                 ),
                 row=1,
                 col=subplot_map[objective]
             )
         if col in {'kappa'}:
             fig.update_yaxes(type='log')
-        fig.update_yaxes(row=1, col=1, title_text=title, title_font=dict(size=18))
-        fig.update_xaxes(row=1, col=1, range=[0, blocking_IterLimit], title_text=r'$\textrm{Number of Rounds}$', title_font=dict(size=18))
-        fig.update_xaxes(row=1, col=2, range=[0, blocking_IterLimit], title_text=r'$\textrm{Number of Rounds}$', title_font=dict(size=18))
+        fig.update_yaxes(
+            row=1, col=1,
+            title_text=title, title_font={'size': 18}
+        )
+        for idx, _ in enumerate(objectives):
+            fig.update_xaxes(
+                row=1, col=idx + 1,
+                range=[0, blocking_IterLimit], title_text=r'$\large \textrm{Number of Rounds}$', title_font={'size': 18}
+            )
         for annotation in fig['layout']['annotations']:
-            annotation['font'] = {'size': 20}
-            annotation['y'] += 0.01
-        fig.update_layout(legend=dict(
-            orientation="h",
-            entrywidth=150,
-            yanchor="bottom",
-            y=1.05,
-            xanchor="center",
-            x=0.5
-        ))
-
+            annotation['font'] = {'size': 22}
+            annotation['y'] = 1.0125
+        fig.update_layout(
+            legend={
+                'orientation': 'h', 'entrywidth': 150, 'yanchor': 'top', 'y': -0.125, 'xanchor': 'right', 'x': 1,
+                'font': {'size': 14}
+            }
+        )
         fig.show()
-
+        fig.write_image('./results/figures/{0}.png'.format(col), width=800, height=600, scale=4)
 
 
 def plot_utilities():
 
-    objectives = ['utilitarian']
-    blocking_IterLimit = 100
-    blocking_TimeLimits = [1800]
+    objective = 'maximin'
+    blocking_TimeLimits = [300]
     blocking_EpsLimit = 0
+    blocking_IterCount = 58
 
     data = []
-    for objective in objectives:
-        for blocking_TimeLimit in blocking_TimeLimits:
-            modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
-            for blocking_IterCount in range(blocking_IterLimit + 1):
-                try:
-                    with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'rb') as file:
-                        _, u_N, _, _ = pickle.load(file)
-                        u_N = sorted(u_N.values())
-                        data.append(u_N)
-                except FileNotFoundError:
-                    continue
+    for blocking_TimeLimit in blocking_TimeLimits:
+        modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
+        try:
+            with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(
+                    RELPATH, FILENAME, modelname, blocking_IterCount
+            ), 'rb') as file:
+                _, u_N, _, _, _, _, _ = pickle.load(file)
+                u_N = sorted(u_N.values())
+                for idx, u_i in enumerate(u_N):
+                    data.append(
+                        (
+                            blocking_TimeLimit, idx + 1, u_i
+                        )
+                    )
+        except FileNotFoundError:
+            pass
+    modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimits[0], blocking_EpsLimit)
+    try:
+        with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(
+                RELPATH, FILENAME, modelname, -1
+        ), 'rb') as file:
+            _, u_N, _, _, _, _, _ = pickle.load(file)
+            u_N = sorted(u_N.values())
+            for idx, u_i in enumerate(u_N):
+                data.append(
+                    (
+                        -1, idx + 1, u_i
+                    )
+                )
+    except FileNotFoundError:
+        pass
 
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
+    df = pd.DataFrame(
+        data,
+        columns=['timelimit', 'idx', 'u_i']
+    )
 
-    fig = go.Figure()
-    conv = []
-    for u in data:
-        conv.append(sum(u))
-        # conv.append(min(u))
-    # for u1, u2 in zip(data, data[1:]):
-    #     # conv.append(u1[0] - u2[0])
-    #     # conv.append(sum(u1) - sum(u2))
-    #     conv.append(max(np.absolute(u1_i - u2_i) for u1_i, u2_i in zip(u1, u2)))
-    fig.add_trace(
-        go.Scatter(
-            x=list(range(len(conv))),
-            y=conv,
-            mode='lines',
-            line={'color': HEXBLUE}
+    color_map = {-1: HEXBLACK, 300: HEXYELLOW, 600: HEXBLUE, 900: HEXVERMILLION}
+    marker_map = {-1: 'star', 300: 'circle', 600: 'square', 900: 'diamond'}
+    dash_map = {-1: 'dot', 300: 'solid', 600: 'solid', 900: 'solid'}
+
+    fig = make_subplots(
+        rows=1, cols=1,
+        subplot_titles=(r'$\Large \textrm{Maximin Service Plan}$',)
+    )
+
+    for (timelimit, ), group_df in df.groupby(['timelimit']):
+        fig.add_trace(
+            go.Scatter(
+                x=group_df['idx'],
+                y=group_df['u_i'],
+                mode='lines+markers',
+                name='MIP Timeout: {0:.0f} min.'.format(timelimit/60) if timelimit != -1 else 'Without Cooperation',
+                line={'color': color_map[timelimit], 'dash': dash_map[timelimit]},
+                marker={'color': color_map[timelimit], 'symbol': marker_map[timelimit], 'size': 2}
             ),
+            row=1, col=1
         )
+
+    fig.update_yaxes(
+        row=1, col=1,
+        title_text=r'$\large \textrm{Utility}$', title_font={'size': 18}
+    )
+    fig.update_xaxes(
+        row=1, col=1,
+        title_text=r'$\large \textrm{Riders (Sorted by Utility)}$', title_font={'size': 18}
+    )
+    for annotation in fig['layout']['annotations']:
+        annotation['font'] = {'size': 22}
+        annotation['y'] = 1.0125
+    fig.update_layout(
+        legend={
+            'orientation': 'h', 'entrywidth': 150, 'yanchor': 'top', 'y': -0.125, 'xanchor': 'right', 'x': 1,
+            'font': {'size': 14}
+        }
+    )
+
     fig.show()
-# def plot_util_curves(modelname1, modelname2):
-#
-#     with open('{0}/results/solutions/out_{1}_{2}.pkl'.format(relpath, filename, modelname1), 'rb') as file:
-#         _, u_N1, _, _, _ = pickle.load(file)
-#     with open('{0}/results/solutions/out_{1}_{2}.pkl'.format(relpath, filename, modelname2), 'rb') as file:
-#         _, u_N2, _, _, _ = pickle.load(file)
-#     n = len(u_N1)
-#
-#     u1 = sorted(u_N1.values())
-#     u2 = sorted(u_N2.values())
-#     fig = make_subplots(rows=1, cols=2)
-#     fig.add_trace(
-#         go.Scatter(
-#             x=list(range(n)), y=u1, mode='lines+markers', name=r'$\Large \text{Without cooperation}$', showlegend=True,
-#             marker=dict(symbol='square', color=hexblue, size=5), line=dict(color=hexblue, width=1)
-#         ), row=1, col=1,
-#     )
-#     fig.add_trace(
-#         go.Scatter(
-#             x=list(range(n)), y=u2, mode='lines+markers', name=r'$\Large \text{With cooperation}$', showlegend=True,
-#             marker=dict(symbol='diamond', color=hexvermillion, size=5), line=dict(color=hexvermillion, width=1)
-#         ), row=1, col=1
-#     )
-#     fig.add_trace(
-#         go.Scatter(
-#             x=list(range(n)), y=u1, mode='lines+markers', name=r'$\Large \text{Without cooperation}$', showlegend=False,
-#             marker=dict(symbol='square', color=hexblue, size=5), line=dict(color=hexblue, width=1)
-#         ), row=1, col=2
-#     )
-#     fig.add_trace(
-#         go.Scatter(
-#             x=list(range(n)), y=u2, mode='lines+markers', name=r'$\Large \text{With cooperation}$', showlegend=False,
-#             marker=dict(symbol='diamond', color=hexvermillion, size=5), line=dict(color=hexvermillion, width=1)
-#         ), row=1, col=2
-#     )
-#     fig.update_layout(
-#         xaxis=dict(
-#             title=r'$\Large \text{Riders (Sorted by Utility)}$',
-#             title_font=dict(size=30),
-#             tickfont=dict(size=16)
-#         ),
-#         xaxis2=dict(
-#             title=r'$\Large \text{Riders (Sorted by Utility)}$',
-#             title_font=dict(size=30),
-#             tickfont=dict(size=16),
-#             range=[0, 360]
-#         ),
-#         yaxis=dict(
-#             title=r'$\Large \text{Utility}$',
-#             title_font=dict(size=30),
-#             tickfont=dict(size=16)
-#         ),
-#         yaxis2=dict(
-#             tickfont=dict(size=16),
-#             range=[0 - 0.0125, 0.3 + 0.0125]
-#         ),
-#         legend=dict(
-#             font=dict(size=30),
-#             orientation='h',
-#             xanchor='center',
-#             yanchor='bottom',
-#             x=0.5,
-#             y=1.025
-#         )
-#     )
-#     fig.write_html('./results/figures/utilities.html'.format(filename))
-#     fig.write_image('./results/figures/utilities.png'.format(filename), width=1600, height=800, scale=3)
+    fig.write_image('./results/figures/utils.png', width=800, height=600, scale=4)
+
+
+def test():
+
+    objective = 'utilitarian'
+    timeLimit = 300
+    epsLimit = 0
+    blocking_IterCount = 69
+
+    with open('{0}/results/instances/{1}.pkl'.format(RELPATH, FILENAME), 'rb') as file:
+        instance = pickle.load(file)
+    modelname = '{0}-{1}-{2}'.format(objective, timeLimit, epsLimit)
+    with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(
+            RELPATH, FILENAME, modelname, blocking_IterCount
+    ), 'rb') as file:
+        _, u_N, _, _, _, _, _ = pickle.load(file)
+
+    solver.get_blocking(instance, u_N, divPhase=False, MIPFocus=3, timeLimit=np.Infinity)

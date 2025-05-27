@@ -14,9 +14,9 @@ from pathlib import Path
 from playwright.async_api import async_playwright
 
 objective = 'maximin'
-blocking_TimeLimit = 600 * 3
+blocking_TimeLimit = 300 * 1
 blocking_EpsLimit = 0
-modelname = 'v2-{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
+modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
 blocking_IterCountStart = 0
 blocking_IterCountEnd = 100
 
@@ -121,5 +121,5 @@ if __name__ == '__main__':
         pass
     asyncio.run(convert_html_to_images())
     """
-    ffmpeg -framerate 3 -i results/frames/png_crop/frame_%04d.png -crf 18 -preset slow -pix_fmt yuv420p results/frames/frames.mp4
+    ffmpeg -framerate 15 -i results/frames/png_crop/frame_%04d.png -crf 18 -preset slow -pix_fmt yuv420p results/frames/frames.mp4
     """

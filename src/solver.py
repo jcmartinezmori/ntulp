@@ -23,7 +23,6 @@ def main(instance, modelname, **kwargs):
     m.Params.Method = kwargs.get('Method', 1)
     m.Params.NumericFocus = kwargs.get('NumericFocus', 3)
     m.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-9)
-    # m.Params.Presolve = kwargs.get('Presolve', 0)
     m.ModelSense = -1
 
     m._x = m.addVars(J, vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='x')
@@ -109,7 +108,7 @@ def main(instance, modelname, **kwargs):
                 continue
             intersections = get_intersections(
                 instance, m, constr_names_to_indices, basis_mat, basis_varnames, u_N, prev_S,
-                epsTh=1E-3, lamRatTh=1E-7
+                epsTh=1E-3, lamRatTh=1E-6
             )
             if intersections is not None:
                 cutPrev = True
@@ -143,7 +142,10 @@ def main(instance, modelname, **kwargs):
         kappa = m.getAttr('KappaExact')
 
         iterCount += 1
-        eps, S = get_blocking(instance, u_N, timeLimit=timeLimit, Starts=Starts)
+        if iterCount % 2:
+            eps, S = get_blocking(instance, u_N, timeLimit=timeLimit, Starts=Starts, divPhase=True)
+        else:
+            eps, S = get_blocking(instance, u_N, timeLimit=timeLimit, Starts=Starts, divPhase=False)
         S = tuple(sorted(S))
 
         out = x_N, u_N, time.time() - ts, cutCount, eps, S, kappa
@@ -213,21 +215,24 @@ def get_blocking(instance, u_N, **kwargs):
             else:
                 m_S._y[i].Start = 0
 
-    m_S.Params.TimeLimit = kwargs.get('delTimeLimit', 300)
-    m_S.setObjective(m_S._del)
-    m_S.optimize()
+    if kwargs.get('divPhase', True):
 
-    m_S.NumStart += 1
-    Start = {i for i in N if m_S._y[i].X > 1/2}
-    m_S.Params.StartNumber += 1
-    for i in N:
-        if i in Start:
-            m_S._y[i].Start = 1
-        else:
-            m_S._y[i].Start = 0
+        m_S.Params.TimeLimit = kwargs.get('divTimeLimit', 300)
+        m_S.setObjective(m_S._del)
+        m_S.optimize()
+
+        m_S.NumStart += 1
+        Start = {i for i in N if m_S._y[i].X > 1/2}
+        m_S.Params.StartNumber += 1
+        for i in N:
+            if i in Start:
+                m_S._y[i].Start = 1
+            else:
+                m_S._y[i].Start = 0
+
+        m_S.addConstr(m_S._del >= m_S._del.X/2)
 
     m_S.Params.TimeLimit = kwargs.get('timeLimit', 300)
-    m_S.addConstr(m_S._del >= (1-1E-1) * m_S._del.X)
     m_S.setObjective(m_S._eps)
     m_S.optimize()
 
