@@ -7,8 +7,8 @@ import pandas as pd
 import playwright
 import pickle
 import shutil
-import src.helper as helper
 from src.config import *
+import src.helper as helper
 import subprocess
 from pathlib import Path
 from playwright.async_api import async_playwright
