@@ -4,14 +4,14 @@ import src.helper as helper
 import src.solver as solver
 from src.config import *
 
-n = 1430
+n = 125
 objective = 'utilitarian'
 iterLimit = 100
 timeLimit = 300 * 1
 epsLimit = 0
 modelname = '{0}-{1}-{2}-{3}'.format(n, objective, timeLimit, epsLimit)
 
-solve = True
+solve = False
 if solve:
     with open('{0}/results/instances/instance_{1}_{2}.pkl'.format(RELPATH, FILENAME, n), 'rb') as file:
         instance = pickle.load(file)
@@ -24,7 +24,7 @@ if solve:
     )
 
 
-plot = False
+plot = True
 if plot:
     helper.plot_convergence()
     helper.plot_utilities()
