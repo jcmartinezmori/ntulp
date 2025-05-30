@@ -78,6 +78,7 @@ def main(instance, modelname, **kwargs):
     iterCount += 1
     eps, S = get_blocking(instance, u_N, timeLimit=timeLimit, Starts=Starts)
     S = tuple(sorted(S))
+    epsTgt = eps
 
     out = x_N, u_N, time.time() - ts, cutCount, eps, S, kappa
     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, iterCount), 'wb') as file:
@@ -145,7 +146,8 @@ def main(instance, modelname, **kwargs):
         if iterCount % 3 == 0:
             eps, S = get_blocking(instance, u_N, timeLimit=timeLimit, Starts=Starts, divPhase=True)
         else:
-            eps, S = get_blocking(instance, u_N, timeLimit=timeLimit, Starts=Starts, divPhase=False)
+            eps, S = get_blocking(instance, u_N, BestObjStop=epsTgt, timeLimit=timeLimit, Starts=Starts, divPhase=False)
+            epsTgt = eps
         S = tuple(sorted(S))
 
         out = x_N, u_N, time.time() - ts, cutCount, eps, S, kappa
@@ -185,6 +187,7 @@ def get_blocking(instance, u_N, **kwargs):
             Starts.add(S_j)
 
     m_S = gp.Model()
+    m_S.Params.BestObjStop = kwargs.get('BestObjStop', m_S.Params.BestObjStop)
     m_S.Params.OutputFlag = kwargs.get('OutputFlag', 1)
     m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-6)
     m_S.Params.MIPFocus = kwargs.get('MIPFocus', 0)
