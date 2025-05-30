@@ -143,10 +143,10 @@ def main(instance, modelname, **kwargs):
         kappa = m.getAttr('KappaExact')
 
         iterCount += 1
-        if iterCount % 3 == 0:
+        if iterCount % 4 == 0:
             eps, S = get_blocking(instance, u_N, timeLimit=timeLimit, Starts=Starts, divPhase=True)
         else:
-            eps, S = get_blocking(instance, u_N, BestObjStop=epsTgt, timeLimit=timeLimit, Starts=Starts, divPhase=False)
+            eps, S = get_blocking(instance, u_N, BestObjStop=3/4*epsTgt, timeLimit=timeLimit, Starts=Starts, divPhase=False)
             epsTgt = eps
         S = tuple(sorted(S))
 
@@ -190,7 +190,7 @@ def get_blocking(instance, u_N, **kwargs):
     m_S.Params.BestObjStop = kwargs.get('BestObjStop', m_S.Params.BestObjStop)
     m_S.Params.OutputFlag = kwargs.get('OutputFlag', 1)
     m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-6)
-    m_S.Params.MIPFocus = kwargs.get('MIPFocus', 0)
+    m_S.Params.MIPFocus = kwargs.get('MIPFocus', 1)
     m_S.Params.NumericFocus = kwargs.get('NumericFocus', 3)
     m_S.NumStart = len(Starts)
     m_S.ModelSense = -1

@@ -34,7 +34,7 @@ def plot_convergence():
     data = []
     for objective in objectives:
         for blocking_TimeLimit in blocking_TimeLimits:
-            modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
+            modelname = '125-{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
             for blocking_IterCount in range(blocking_IterLimit + 1):
                 try:
                     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(
@@ -112,7 +112,7 @@ def plot_convergence():
             }
         )
         fig.show()
-        fig.write_image('./results/figures/{0}.png'.format(col), width=800, height=600, scale=4)
+        # fig.write_image('./results/figures/{0}.png'.format(col), width=800, height=600, scale=4)
 
 
 def plot_utilities():
@@ -206,14 +206,14 @@ def plot_utilities():
 
 def test():
 
-    objective = 'utilitarian'
+    objective = 'maximin'
     timeLimit = 300
     epsLimit = 0
-    blocking_IterCount = 69
+    blocking_IterCount = 0
 
-    with open('{0}/results/instances/{1}.pkl'.format(RELPATH, FILENAME), 'rb') as file:
+    with open('{0}/results/instances/instance_{1}_125.pkl'.format(RELPATH, FILENAME), 'rb') as file:
         instance = pickle.load(file)
-    modelname = '{0}-{1}-{2}'.format(objective, timeLimit, epsLimit)
+    modelname = '125-{0}-{1}-{2}'.format(objective, timeLimit, epsLimit)
     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(
             RELPATH, FILENAME, modelname, blocking_IterCount
     ), 'rb') as file:
