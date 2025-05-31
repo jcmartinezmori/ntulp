@@ -144,9 +144,9 @@ def main(instance, modelname, **kwargs):
 
         iterCount += 1
         if iterCount % 3 == 0:
-            eps, S = get_blocking(instance, u_N, timeLimit=timeLimit, Starts=Starts, divPhase=True)
+            eps, S = get_blocking(instance, u_N, TimeLimit=TimeLimit, Starts=Starts, divPhase=True)
         else:
-            eps, S = get_blocking(instance, u_N, BestObjStop=epsTgt, timeLimit=timeLimit, Starts=Starts, divPhase=False)
+            eps, S = get_blocking(instance, u_N, BestObjStop=epsTgt, TimeLimit=timeLimit, Starts=Starts, divPhase=False)
             epsTgt = eps
         S = tuple(sorted(S))
 
@@ -192,6 +192,7 @@ def get_blocking(instance, u_N, **kwargs):
     m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-6)
     m_S.Params.MIPFocus = kwargs.get('MIPFocus', 1)
     m_S.Params.NumericFocus = kwargs.get('NumericFocus', 3)
+    m_S.Params.TimeLimit = kwargs.get('TimeLimit', 300)
     m_S.NumStart = len(Starts)
     m_S.ModelSense = -1
 
@@ -220,7 +221,6 @@ def get_blocking(instance, u_N, **kwargs):
 
     if kwargs.get('divPhase', True):
 
-        m_S.Params.TimeLimit = kwargs.get('divTimeLimit', 300)
         m_S.setObjective(m_S._del)
         m_S.optimize()
 
@@ -233,9 +233,8 @@ def get_blocking(instance, u_N, **kwargs):
             else:
                 m_S._y[i].Start = 0
 
-        m_S.addConstr(m_S._del >= m_S._del.X/2)
+        m_S.addConstr(m_S._del >= m_S._del.X * 3 / 4)
 
-    m_S.Params.TimeLimit = kwargs.get('timeLimit', 300)
     m_S.setObjective(m_S._eps)
     m_S.optimize()
 
