@@ -193,7 +193,6 @@ def get_blocking(instance, u_N, **kwargs):
     m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-6)
     m_S.Params.MIPFocus = kwargs.get('MIPFocus', 1)
     m_S.Params.NumericFocus = kwargs.get('NumericFocus', 3)
-    m_S.Params.TimeLimit = kwargs.get('TimeLimit', 300)
     m_S.NumStart = len(Starts)
     m_S.ModelSense = -1
 
@@ -222,6 +221,7 @@ def get_blocking(instance, u_N, **kwargs):
 
     if kwargs.get('divPhase', True):
 
+        m_S.Params.TimeLimit = 3 * kwargs.get('TimeLimit', 300)
         m_S.setObjective(m_S._del)
         m_S.optimize()
 
@@ -234,8 +234,9 @@ def get_blocking(instance, u_N, **kwargs):
             else:
                 m_S._y[i].Start = 0
 
-        m_S.addConstr(m_S._del >= m_S._del.X * 3 / 4)
+        m_S.addConstr(m_S._del >= m_S._del.X / 2)
 
+    m_S.Params.TimeLimit = kwargs.get('TimeLimit', 300)
     m_S.setObjective(m_S._eps)
     m_S.optimize()
 
