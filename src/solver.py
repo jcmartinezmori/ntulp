@@ -145,7 +145,7 @@ def main(instance, modelname, **kwargs):
 
         iterCount += 1
         if iterCount % 3 == 0:
-            eps, S = get_blocking(instance, u_N, TimeLimit=TimeLimit, Starts=Starts, divPhase=True)
+            eps, S = get_blocking(instance, u_N, TimeLimit=timeLimit, Starts=Starts, divPhase=True)
         else:
             eps, S = get_blocking(instance, u_N, BestObjStop=epsTgt, TimeLimit=timeLimit, Starts=Starts, divPhase=False)
             epsTgt = eps
