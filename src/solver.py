@@ -318,6 +318,8 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat, basis_var
                 constrs.append(constr)
         m_S.optimize()
         if m_S.Status == 2:
+            if m_S._lam.X < kwargs.get('lamRatTh', 1E-9):
+                return None
             if m_S._lam.X < min_lam:
                 min_lam = m_S._lam.X
             if m_S._lam.X > max_lam:
