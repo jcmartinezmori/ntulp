@@ -251,7 +251,7 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat, basis_var
     N, J, K, A, B, V = instance
 
     m_S = gp.Model()
-    m_S.Params.OutputFlag = kwargs.get('OutputFlag', 0)
+    m_S.Params.OutputFlag = kwargs.get('OutputFlag', 1)
     m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-6)
     m_S.Params.NumericFocus = kwargs.get('NumericFocus', 0)
     m_S.Params.OptimalityTol = kwargs.get('OptimalityTol', 1E-6)
