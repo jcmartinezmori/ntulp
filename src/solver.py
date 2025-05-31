@@ -104,22 +104,22 @@ def main(instance, modelname, **kwargs):
 
         print('... adding cuts for previous S.')
         cutPrev = False
-        for prev_S in Starts:
-            if prev_S == S:
-                continue
-            intersections = get_intersections(
-                instance, m, constr_names_to_indices, basis_mat, basis_varnames, u_N, prev_S,
-                epsTh=1E-3, lamRatTh=1E-6
-            )
-            if intersections is not None:
-                cutPrev = True
-                min_lam = min(lam for _, lam in intersections)
-                max_lam = max(lam for _, lam in intersections)
-                s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(slackCount))
-                slackCount += 1
-                m.addConstr(gp.quicksum(m.getVarByName(varname) / lam for varname, lam in intersections) - s == 1)
-                cutCount += 1
-                print('...... added cut for prev. S with coeff. ratio {0}.'.format(min_lam/max_lam))
+        # for prev_S in Starts:
+        #     if prev_S == S:
+        #         continue
+        #     intersections = get_intersections(
+        #         instance, m, constr_names_to_indices, basis_mat, basis_varnames, u_N, prev_S,
+        #         epsTh=1E-3, lamRatTh=1E-6
+        #     )
+        #     if intersections is not None:
+        #         cutPrev = True
+        #         min_lam = min(lam for _, lam in intersections)
+        #         max_lam = max(lam for _, lam in intersections)
+        #         s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(slackCount))
+        #         slackCount += 1
+        #         m.addConstr(gp.quicksum(m.getVarByName(varname) / lam for varname, lam in intersections) - s == 1)
+        #         cutCount += 1
+        #         print('...... added cut for prev. S with coeff. ratio {0}.'.format(min_lam/max_lam))
         print('... adding cut for current S.')
         intersections = get_intersections(
             instance, m, constr_names_to_indices, basis_mat, basis_varnames, u_N, S,
@@ -146,7 +146,7 @@ def main(instance, modelname, **kwargs):
         if iterCount % 4 == 0:
             eps, S = get_blocking(instance, u_N, timeLimit=timeLimit, Starts=Starts, divPhase=True)
         else:
-            eps, S = get_blocking(instance, u_N, BestObjStop=3/4*epsTgt, timeLimit=timeLimit, Starts=Starts, divPhase=False)
+            eps, S = get_blocking(instance, u_N, BestObjStop=epsTgt, timeLimit=timeLimit, Starts=Starts, divPhase=False)
             epsTgt = eps
         S = tuple(sorted(S))
 

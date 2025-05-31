@@ -5,7 +5,7 @@ from src.config import *
 import src.helper as helper
 
 
-def main(n=1430):
+def main(n):
 
     g, stops_df, lines_df, trips_df = helper.preprocess_load()
 
@@ -63,4 +63,4 @@ def main(n=1430):
 
 
 if __name__ == '__main__':
-    main()
+    main(n=1000)
