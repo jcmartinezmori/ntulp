@@ -78,7 +78,6 @@ def main(instance, modelname, **kwargs):
     iterCount += 1
     eps, S = get_blocking(instance, u_N, TimeLimit=timeLimit, Starts=Starts)
     S = tuple(sorted(S))
-    epsTgt = eps
 
     out = x_N, u_N, time.time() - ts, cutCount, eps, S, kappa
     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, iterCount), 'wb') as file:
@@ -147,8 +146,7 @@ def main(instance, modelname, **kwargs):
         if iterCount % 3 == 0:
             eps, S = get_blocking(instance, u_N, TimeLimit=timeLimit, Starts=Starts, divPhase=True)
         else:
-            eps, S = get_blocking(instance, u_N, BestObjStop=epsTgt, TimeLimit=timeLimit, Starts=Starts, divPhase=False)
-            epsTgt = eps
+            eps, S = get_blocking(instance, u_N, TimeLimit=timeLimit, Starts=Starts, divPhase=False)
         S = tuple(sorted(S))
 
         out = x_N, u_N, time.time() - ts, cutCount, eps, S, kappa
@@ -308,7 +306,6 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat, basis_var
         #     r[basis_varname] = -inv_basis_mat_col[i]
 
         if all(r['u[{0}]'.format(i)] <= 0 for i in S if 'u[{0}]'.format(i) in r):
-            print('hello')
             continue
 
         constrs = []

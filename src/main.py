@@ -4,10 +4,10 @@ import src.helper as helper
 import src.solver as solver
 from src.config import *
 
-n = 1000
-objective = 'utilitarian'
-iterLimit = 1000
-timeLimit = 60 * 1
+n = 132
+objective = 'maximin'
+iterLimit = 100
+timeLimit = 60
 epsLimit = 0
 modelname = '{0}-{1}-{2}-{3}'.format(n, objective, timeLimit, epsLimit)
 
@@ -22,11 +22,3 @@ if solve:
         timeLimit=timeLimit,
         epsLimit=epsLimit
     )
-
-
-plot = False
-if plot:
-    helper.plot_convergence()
-    helper.plot_utilities()
-
-
