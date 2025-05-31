@@ -121,7 +121,7 @@ def main(instance, modelname, **kwargs):
                 m.addConstr(gp.quicksum(m.getVarByName(varname) / lam for varname, lam in intersections) - s == 1)
                 cutCount += 1
                 print('...... added cut for prev. S with coeff. ratio {0}.'.format(min_lam/max_lam))
-        print('... adding cut for current S.')
+        print('... adding cut for current S of length {0}.'.format(len(S)))
         intersections = get_intersections(
             instance, m, constr_names_to_indices, basis_mat, basis_varnames, u_N, S,
             epsTh=0, lamRatTh=0
