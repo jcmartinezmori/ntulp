@@ -4,9 +4,9 @@ import src.helper as helper
 import src.solver as solver
 from src.config import *
 
-n = 125
+n = 1430
 objective = 'utilitarian'
-iterLimit = 100
+iterLimit = 1000
 timeLimit = 300 * 1
 epsLimit = 0
 modelname = '{0}-{1}-{2}-{3}'.format(n, objective, timeLimit, epsLimit)

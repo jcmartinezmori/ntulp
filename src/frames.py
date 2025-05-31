@@ -28,14 +28,14 @@ cropbox = (475, 175, 825, 675)
 png_zoom = 4
 
 
-def plot_frames():
+def plot_frames(n=1430):
 
     if os.path.exists(html_dir):
         shutil.rmtree(html_dir)
     os.makedirs(html_dir)
 
     g, lines_df = helper.load()
-    samples_df = pd.read_csv('{0}/results/instances/samples_df_{1}.csv'.format(RELPATH, FILENAME))
+    samples_df = pd.read_csv('{0}/results/instances/samples_df_{1}_{2}.csv'.format(RELPATH, FILENAME, n))
 
     for blocking_IterCount in range(blocking_IterCountStart, blocking_IterCountEnd + 1):
 

@@ -28,7 +28,7 @@ def plot_convergence():
 
     objectives = ['maximin', 'utilitarian']
     blocking_IterLimit = 100
-    blocking_TimeLimits = [300, 600, 900]
+    blocking_TimeLimits = [300]
     blocking_EpsLimit = 0
 
     data = []
