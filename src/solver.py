@@ -308,6 +308,7 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat, basis_var
         #     r[basis_varname] = -inv_basis_mat_col[i]
 
         if all(r['u[{0}]'.format(i)] <= 0 for i in S if 'u[{0}]'.format(i) in r):
+            print('hello')
             continue
 
         constrs = []
