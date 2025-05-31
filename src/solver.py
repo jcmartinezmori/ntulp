@@ -282,9 +282,8 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat, basis_var
 
     min_lam, max_lam = 1, 1
     intersections = []
+    print(len(basis_varnames) / len(m.getVars()))
     for var in m.getVars():
-
-        print('hello')
 
         if var.VBasis == BASIC:
             continue
