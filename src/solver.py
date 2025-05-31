@@ -221,7 +221,7 @@ def get_blocking(instance, u_N, **kwargs):
 
     if kwargs.get('divPhase', True):
 
-        m_S.Params.TimeLimit = 3 * kwargs.get('TimeLimit', 300)
+        m_S.Params.TimeLimit = kwargs.get('TimeLimit', 300)
         m_S.setObjective(m_S._del)
         m_S.optimize()
 
