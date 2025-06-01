@@ -43,3 +43,6 @@ HEXCOLORS = [
     HEXBLUISHGREEN,
     HEXREDDISHPURPUPLE,
 ]
+MARKERS = [
+    'circle', 'square', 'diamond', 'cross', 'x', 'hexagram'
+]
