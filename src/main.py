@@ -20,8 +20,8 @@ def main(n, objective, timeLimit, epsLimit, **kwargs):
 
 
 if __name__ == '__main__':
-    n = 132
-    objective = 'maximin'
+    n = 1430
+    objective = 'utilitarian'
     timeLimit = 60
     epsLimit = 0
     main(n, objective, timeLimit, epsLimit, iterLimit=100)

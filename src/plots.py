@@ -35,8 +35,8 @@ def plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit):
     df['util_obj'] /= len(u_N)
     df['tt'] /= (60 * 60)
 
-    color_map = {42: HEXYELLOW, 132: HEXBLUE, 429: HEXVERMILLION}
-    marker_map = {42: 'circle', 132: 'square', 429: 'diamond'}
+    color_map = {14: HEXVERMILLION, 42: HEXYELLOW, 132: HEXBLUE, 429: HEXVERMILLION}
+    marker_map = {14: 'circle', 42: 'circle', 132: 'square', 429: 'diamond'}
     subplot_map = {objective: idx + 1 for idx, objective in enumerate(objectives)}
 
     plots = (
@@ -182,10 +182,10 @@ def plot_utilities():
 
 if __name__ == '__main__':
 
-    ns = [42, 132, 429]
+    ns = [14]
     objectives = ['maximin', 'utilitarian']
     timeLimit = 60
     epsLimit = 0
-    iterLimit = 1000
+    iterLimit = 100
 
     plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit)
