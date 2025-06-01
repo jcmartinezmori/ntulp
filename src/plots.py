@@ -5,29 +5,24 @@ from plotly.subplots import make_subplots
 from src.config import *
 
 
-def plot_convergence(n):
-
-    objectives = ['maximin']
-    blocking_IterLimit = 300
-    blocking_TimeLimits = [60]
-    blocking_EpsLimit = 0
+def plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit):
 
     data = []
-    for objective in objectives:
-        for blocking_TimeLimit in blocking_TimeLimits:
-            modelname = '{0}-{1}-{2}-{3}'.format(n, objective, blocking_TimeLimit, blocking_EpsLimit)
-            for blocking_IterCount in range(blocking_IterLimit + 1):
+    for n in ns:
+        for objective in objectives:
+            modelname = '{0}-{1}-{2}-{3}'.format(n, objective, timeLimit, epsLimit)
+            for iterCount in range(iterLimit + 1):
                 try:
                     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(
-                            RELPATH, FILENAME, modelname, blocking_IterCount
+                            RELPATH, FILENAME, modelname, iterCount
                     ), 'rb') as file:
                         _, u_N, tt, cutct, eps, _, kappa = pickle.load(file)
                         util_obj = sum(u_N.values())
                         mxmn_obj = min(u_N.values())
                         data.append(
                             (
-                                objective, blocking_TimeLimit, blocking_IterCount,
-                                tt, cutct, eps, kappa, util_obj, mxmn_obj
+                                n, objective, timeLimit, iterCount,
+                                tt, cutct, kappa, eps, util_obj, mxmn_obj
                             )
                         )
                 except FileNotFoundError:
@@ -35,20 +30,20 @@ def plot_convergence(n):
 
     df = pd.DataFrame(
         data,
-        columns=['objective', 'timelimit', 'itct', 'tt', 'cutct', 'eps', 'kappa', 'util_obj', 'mxmn_obj']
+        columns=['n', 'objective', 'timelimit', 'iterCount', 'tt', 'cutct', 'kappa', 'eps', 'util_obj', 'mxmn_obj']
     )
     df['util_obj'] /= len(u_N)
     df['tt'] /= (60 * 60)
 
-    color_map = {60: HEXYELLOW, 600: HEXBLUE, 900: HEXVERMILLION}
-    marker_map = {60: 'circle', 600: 'square', 900: 'diamond'}
+    color_map = {42: HEXYELLOW, 132: HEXBLUE, 429: HEXVERMILLION}
+    marker_map = {42: 'circle', 132: 'square', 429: 'diamond'}
     subplot_map = {objective: idx + 1 for idx, objective in enumerate(objectives)}
 
     plots = (
-        ('eps', r'$\large \textrm{Least Objection (}\epsilon\textrm{)}$'),
-        ('kappa', r'$\large \textrm{Basis Condition Number (}\kappa\textrm{)}$'),
-        ('cutct', r'$\large \textrm{Number of Cuts}$'),
         ('tt', r'$\large \textrm{Elapsed time [hr.]}$'),
+        ('cutct', r'$\large \textrm{Number of Cuts}$'),
+        ('kappa', r'$\large \textrm{Basis Condition Number (}\kappa\textrm{)}$'),
+        ('eps', r'$\large \textrm{Least Objection (}\epsilon\textrm{)}$'),
         ('util_obj', r'$\large \textrm{Utilitarian Social Welfare}$'),
         ('mxmn_obj', r'$\large \textrm{Maximin Social Welfare}$')
     )
@@ -58,16 +53,16 @@ def plot_convergence(n):
             rows=1, cols=len(objectives), shared_xaxes=True, shared_yaxes=True,
             subplot_titles=(r'$\Large \textrm{Maximin Service Plan}$', r'$\Large \textrm{Utilitarian Service Plan}$')
         )
-        for (objective, timelimit), group_df in df.groupby(['objective', 'timelimit']):
+        for (objective, n), group_df in df.groupby(['objective', 'n']):
             fig.add_trace(
                 go.Scatter(
-                    x=group_df['itct'],
+                    x=group_df['iterCount'],
                     y=group_df[col],
                     mode='lines+markers',
-                    name='MIP Timeout: {0:.0f} min.'.format(timelimit/60),
+                    name='MIP Timeout: {0:.0f} min.'.format(timeLimit/60),
                     showlegend=True if subplot_map[objective] == 1 else False,
-                    line={'color': color_map[timelimit], 'dash': 'solid'},
-                    marker={'color': color_map[timelimit], 'symbol': marker_map[timelimit], 'size': 6}
+                    line={'color': color_map[n], 'dash': 'solid'},
+                    marker={'color': color_map[n], 'symbol': marker_map[n], 'size': 6}
                 ),
                 row=1,
                 col=subplot_map[objective]
@@ -81,7 +76,7 @@ def plot_convergence(n):
         for idx, _ in enumerate(objectives):
             fig.update_xaxes(
                 row=1, col=idx + 1,
-                range=[0, blocking_IterLimit], title_text=r'$\large \textrm{Number of Rounds}$', title_font={'size': 18}
+                range=[0, iterLimit], title_text=r'$\large \textrm{Number of Rounds}$', title_font={'size': 18}
             )
         for annotation in fig['layout']['annotations']:
             annotation['font'] = {'size': 22}
@@ -186,4 +181,11 @@ def plot_utilities():
 
 
 if __name__ == '__main__':
-    plot_convergence(n=42)
+
+    ns = [42, 132, 429]
+    objectives = ['maximin', 'utilitarian']
+    timeLimit = 60
+    epsLimit = 0
+    iterLimit = 1000
+
+    plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit)

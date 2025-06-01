@@ -63,4 +63,4 @@ def main(n):
 
 
 if __name__ == '__main__':
-    main(n=132)
+    main(n=1430)
