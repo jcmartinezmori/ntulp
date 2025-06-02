@@ -143,10 +143,7 @@ def main(instance, modelname, **kwargs):
         kappa = m.getAttr('KappaExact')
 
         iterCount += 1
-        if iterCount % 2 == 0:
-            eps, S = get_blocking(instance, u_N, TimeLimit=timeLimit, Starts=Starts, divPhase=True)
-        else:
-            eps, S = get_blocking(instance, u_N, TimeLimit=timeLimit, Starts=Starts, divPhase=False)
+        eps, S = get_blocking(instance, u_N, TimeLimit=timeLimit, Starts=Starts, divPhase=True)
         S = tuple(sorted(S))
 
         out = x_N, u_N, time.time() - ts, cutCount, eps, S, kappa
