@@ -1,60 +1,57 @@
+import asyncio
 import folium
 import numpy as np
+import os
 import pandas as pd
+import shutil
 from src.config import *
+from src.frames import convert_html_to_images
 import src.helper as helper
+from pathlib import Path
+from playwright.async_api import async_playwright
 
 
-def main(n):
+def main(n, samples=True, lines=True):
 
-    g, stops_df, lines_df, trips_df = helper.preprocess_load()
-
-    trips_df = pd.read_csv('{0}/results/instances/samples_df_{1}_{2}.csv'.format(RELPATH, FILENAME, n))
-
-    for _, data in g.nodes(data=True):
-        data['trip_ct'] = 0
-    for _, trip in trips_df.iterrows():
-        g.nodes[int(trip.o_node)]['trip_ct'] += 1
-        g.nodes[int(trip.d_node)]['trip_ct'] += 1
+    g, _, lines_df, _ = helper.preprocess_load()
 
     folium_map = folium.Map(location=CENTER, zoom_start=11, tiles=None)
     folium.TileLayer('OpenStreetMap', opacity=1/5).add_to(folium_map)
-    for u, data in g.nodes(data=True):
-        if data['trip_ct']:
-            folium.CircleMarker(
-                location=(data['y'], data['x']), color=HEXBLACK, radius=np.log(1 + data['trip_ct']), weight=0,
-                fill=True, fill_opacity=1, tooltip=u
+    if samples:
+        samples_df = pd.read_csv('{0}/results/instances/samples_df_{1}_{2}.csv'.format(RELPATH, FILENAME, n))
+        for _, data in g.nodes(data=True):
+            data['sample_ct'] = 0
+        for _, trip in samples_df.iterrows():
+            g.nodes[int(trip.o_node)]['sample_ct'] += 1
+            g.nodes[int(trip.d_node)]['sample_ct'] += 1
+        for u, data in g.nodes(data=True):
+            if data['sample_ct']:
+                folium.CircleMarker(
+                    location=(data['y'], data['x']), color=HEXBLACK, radius=np.log(1 + data['sample_ct']), weight=0,
+                    fill=True, fill_opacity=1, tooltip=u
+                ).add_to(folium_map)
+    if lines:
+        lines_df['width'] = 3/4
+        for _, line in lines_df.iterrows():
+            folium.PolyLine(
+                line.coords, color=line.hexcolor, weight=line.width, opacity=3/4, tooltip=line.name
             ).add_to(folium_map)
-    # for _, line in lines_df.iterrows():
-    #     folium.PolyLine(
-    #         line.coords, color=line.hexcolor, weight=line.width, opacity=1, tooltip=line.name
-    #     ).add_to(folium_map)
-    folium_map.save('{0}/results/maps/map_{1}_{2}.html'.format(RELPATH, FILENAME, n))
 
-
-# def plot_map(modelname, g, lines_df, blocking_IterCount):
-#
-#     if modelname == 'alllines':
-#         lines_df['width'] = 2
-#     else:
-#         with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'rb') as file:
-#             x_N, _, _, _, _, S, _ = pickle.load(file)
-#         lines_df['width'] = [LINESCALING * x_N[j] / lines_df.iloc[j].length for j in range(len(x_N))]
-#
-#     folium_map = folium.Map(location=CENTER, zoom_start=11, tiles=None)
-#     folium.TileLayer('OpenStreetMap', opacity=1/5).add_to(folium_map)
-#     for u, data in g.nodes(data=True):
-#         if data['sample_ct']:
-#             folium.CircleMarker(
-#                 location=(data['y'], data['x']), color=HEXBLACK, radius=np.log(1 + 1 * data['sample_ct']), weight=0,
-#                 fill=True, fill_opacity=1, tooltip=u
-#             ).add_to(folium_map)
-#     for _, line in lines_df.iterrows():
-#         folium.PolyLine(
-#             line.coords, color=line.hexcolor, weight=line.width, opacity=1, tooltip=line.name
-#         ).add_to(folium_map)
-#     folium_map.save('{0}/results/figures/maps/{1}_{2}_{3}.html'.format(RELPATH, FILENAME, modelname, blocking_IterCount))
+    folium_map.save('{0}/results/maps/html/map_{1}_{2}_{3}_{4}.html'.format(
+        RELPATH, FILENAME, n, 'samples' if samples else 'nosamples', 'lines' if lines else 'nolines')
+    )
 
 
 if __name__ == '__main__':
-    main(n=1430)
+    ns = [5, 14, 42, 132, 429, 1430]
+    html_dir = './results/maps/html'
+    pdf_dir = './results/maps/pdf'
+    pdf_crop_dir = './results/maps/pdf_crop'
+    png_crop_dir = './results/maps/png_crop'
+    cropbox = (475, 175, 825, 675)
+    png_zoom = 4
+    for n in ns:
+        main(n, samples=True, lines=False)
+        main(n, samples=False, lines=True)
+    asyncio.run(convert_html_to_images(html_dir, pdf_dir, pdf_crop_dir, png_crop_dir, cropbox, png_zoom))
+

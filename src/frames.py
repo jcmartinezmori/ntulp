@@ -13,13 +13,6 @@ import subprocess
 from pathlib import Path
 from playwright.async_api import async_playwright
 
-html_dir = './results/frames/html'
-pdf_dir = './results/frames/pdf'
-pdf_crop_dir = './results/frames/pdf_crop'
-png_crop_dir = './results/frames/png_crop'
-cropbox = (475, 175, 825, 675)
-png_zoom = 4
-
 
 def plot_frames(n, objective, timeLimit, epsLimit, iterCountStart, iterCountEnd):
 
@@ -48,7 +41,6 @@ def plot_frames(n, objective, timeLimit, epsLimit, iterCountStart, iterCountEnd)
                 g.nodes[sample.d_node]['sample_ct'] += 1
 
         folium_map = folium.Map(location=CENTER, zoom_start=11, tiles=None)
-        # folium.TileLayer('OpenStreetMap', opacity=1/5).add_to(folium_map)
         for _, line in lines_df.iterrows():
             folium.PolyLine(
                 line.coords, color=line.hexcolor, weight=line.width, opacity=1, tooltip=line.name
@@ -57,14 +49,14 @@ def plot_frames(n, objective, timeLimit, epsLimit, iterCountStart, iterCountEnd)
         for u, data in g.nodes(data=True):
             if data['sample_ct']:
                 folium.CircleMarker(
-                    location=(data['y'], data['x']), color=HEXBLACK, radius=np.log(1 + 1 * data['sample_ct']), weight=0,
+                    location=(data['y'], data['x']), color=HEXBLACK, radius=np.log(1 + data['sample_ct']), weight=0,
                     fill=True, fill_opacity=1, tooltip=u
                 ).add_to(folium_map)
         folium_map.save('{0}/pos1_{1}_{2}_{3}.html'.format(html_dir, FILENAME, modelname, iterCount))
         folium_map.save('{0}/pos2_{1}_{2}_{3}.html'.format(html_dir, FILENAME, modelname, iterCount))
 
 
-async def convert_html_to_images():
+async def convert_html_to_images(html_dir, pdf_dir, pdf_crop_dir, png_crop_dir, cropbox, png_zoom):
 
     if os.path.exists(pdf_dir):
         shutil.rmtree(pdf_dir)
@@ -118,9 +110,15 @@ if __name__ == '__main__':
     epsLimit = 0
     iterCountStart = 0
     iterCountEnd = 100
+    html_dir = './results/frames/html'
+    pdf_dir = './results/frames/pdf'
+    pdf_crop_dir = './results/frames/pdf_crop'
+    png_crop_dir = './results/frames/png_crop'
+    cropbox = (475, 175, 825, 675)
+    png_zoom = 4
     try:
         plot_frames(n, objective, timeLimit, epsLimit, iterCountStart, iterCountEnd)
-        asyncio.run(convert_html_to_images())
+        asyncio.run(convert_html_to_images(html_dir, pdf_dir, pdf_crop_dir, png_crop_dir, cropbox, png_zoom))
     except FileNotFoundError:
         pass
     """
