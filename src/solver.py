@@ -90,6 +90,7 @@ def main(instance, modelname, **kwargs):
         print('... extracting basis.')
         constr_names_to_indices = {constr.ConstrName: i for i, constr in enumerate(m.getConstrs())}
         basis_mat, basis_varnames = get_basis(m, constr_names_to_indices)
+        basis_mat_lu = ss.linalg.splu(basis_mat.tocsc())
         print('...... extracted basis of shape {0}.'.format(basis_mat.shape))
         with warnings.catch_warnings():
             warnings.simplefilter("error", ss.linalg.MatrixRankWarning)
@@ -108,7 +109,7 @@ def main(instance, modelname, **kwargs):
             if not setS.isdisjoint(set(prev_S)):
                 continue
             intersections = get_intersections(
-                instance, m, constr_names_to_indices, basis_mat, basis_varnames, u_N, prev_S,
+                instance, m, constr_names_to_indices, basis_mat_lu, basis_varnames, u_N, prev_S,
                 epsTh=0, lamRatTh=1E-6
             )
             if intersections is not None:
@@ -122,7 +123,7 @@ def main(instance, modelname, **kwargs):
                 print('...... added cut for prev. S with coeff. ratio {0}.'.format(min_lam/max_lam))
         print('... adding cut for current S of length {0}.'.format(len(S)))
         intersections = get_intersections(
-            instance, m, constr_names_to_indices, basis_mat, basis_varnames, u_N, S,
+            instance, m, constr_names_to_indices, basis_mat_lu, basis_varnames, u_N, S,
             epsTh=0, lamRatTh=0
         )
         if intersections is not None:
@@ -241,7 +242,7 @@ def get_blocking(instance, u_N, **kwargs):
     return eps, S
 
 
-def get_intersections(instance, m, constr_names_to_indices, basis_mat, basis_varnames, u_N, S, **kwargs):
+def get_intersections(instance, m, constr_names_to_indices, basis_mat_lu, basis_varnames, u_N, S, **kwargs):
 
     N, J, K, A, B, V = instance
 
@@ -275,8 +276,6 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat, basis_var
     except (AttributeError, AssertionError):
         return None
 
-    lu = ss.linalg.splu(basis_mat.tocsc())  # Factor once
-
     min_lam, max_lam = 1, 1
     intersections = []
     for var in m.getVars():
@@ -294,7 +293,7 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat, basis_var
             values.append(coeff)
         col = ss.csr_matrix((values, (row_indices, np.zeros_like(row_indices))), shape=(m.NumConstrs, 1))
         # inv_basis_mat_col = ss.linalg.spsolve(basis_mat, col)
-        inv_basis_mat_col = lu.solve(col.toarray())
+        inv_basis_mat_col = basis_mat_lu.solve(col.toarray())
 
 
         # r = {v.VarName: 0 for v in m.getVars()}
