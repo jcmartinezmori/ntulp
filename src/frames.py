@@ -13,13 +13,6 @@ import subprocess
 from pathlib import Path
 from playwright.async_api import async_playwright
 
-objective = 'maximin'
-blocking_TimeLimit = 300 * 1
-blocking_EpsLimit = 0
-modelname = '{0}-{1}-{2}'.format(objective, blocking_TimeLimit, blocking_EpsLimit)
-blocking_IterCountStart = 0
-blocking_IterCountEnd = 100
-
 html_dir = './results/frames/html'
 pdf_dir = './results/frames/pdf'
 pdf_crop_dir = './results/frames/pdf_crop'
@@ -28,18 +21,22 @@ cropbox = (475, 175, 825, 675)
 png_zoom = 4
 
 
-def plot_frames(n=1430):
+def plot_frames(n, objective, timeLimit, epsLimit, iterCountStart, iterCountEnd):
+
+    modelname = '{0}-{1}-{2}-{3}'.format(n, objective, timeLimit, epsLimit)
 
     if os.path.exists(html_dir):
         shutil.rmtree(html_dir)
     os.makedirs(html_dir)
 
-    g, lines_df = helper.load()
+    g, _, lines_df, _ = helper.preprocess_load()
     samples_df = pd.read_csv('{0}/results/instances/samples_df_{1}_{2}.csv'.format(RELPATH, FILENAME, n))
 
-    for blocking_IterCount in range(blocking_IterCountStart, blocking_IterCountEnd + 1):
+    for iterCount in range(iterCountStart, iterCountEnd + 1):
 
-        with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(RELPATH, FILENAME, modelname, blocking_IterCount), 'rb') as file:
+        with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(
+                RELPATH, FILENAME, modelname, iterCount), 'rb'
+        ) as file:
             x_N, _, _, _, _, S, _ = pickle.load(file)
 
         lines_df['width'] = [LINESCALING * x_N[j] / lines_df.iloc[j].length for j in range(len(x_N))]
@@ -56,15 +53,15 @@ def plot_frames(n=1430):
             folium.PolyLine(
                 line.coords, color=line.hexcolor, weight=line.width, opacity=1, tooltip=line.name
             ).add_to(folium_map)
-        folium_map.save('{0}/pre1_{1}_{2}_{3}.html'.format(html_dir, FILENAME, modelname, blocking_IterCount))
+        folium_map.save('{0}/pre1_{1}_{2}_{3}.html'.format(html_dir, FILENAME, modelname, iterCount))
         for u, data in g.nodes(data=True):
             if data['sample_ct']:
                 folium.CircleMarker(
                     location=(data['y'], data['x']), color=HEXBLACK, radius=np.log(1 + 1 * data['sample_ct']), weight=0,
                     fill=True, fill_opacity=1, tooltip=u
                 ).add_to(folium_map)
-        folium_map.save('{0}/pos1_{1}_{2}_{3}.html'.format(html_dir, FILENAME, modelname, blocking_IterCount))
-        folium_map.save('{0}/pos2_{1}_{2}_{3}.html'.format(html_dir, FILENAME, modelname, blocking_IterCount))
+        folium_map.save('{0}/pos1_{1}_{2}_{3}.html'.format(html_dir, FILENAME, modelname, iterCount))
+        folium_map.save('{0}/pos2_{1}_{2}_{3}.html'.format(html_dir, FILENAME, modelname, iterCount))
 
 
 async def convert_html_to_images():
@@ -115,11 +112,17 @@ async def convert_html_to_images():
 
 
 if __name__ == '__main__':
+    n = 429
+    objective = 'maximin'
+    timeLimit = 60
+    epsLimit = 0
+    iterCountStart = 0
+    iterCountEnd = 100
     try:
-        plot_frames()
+        plot_frames(n, objective, timeLimit, epsLimit, iterCountStart, iterCountEnd)
+        asyncio.run(convert_html_to_images())
     except FileNotFoundError:
         pass
-    asyncio.run(convert_html_to_images())
     """
     ffmpeg -framerate 15 -i results/frames/png_crop/frame_%04d.png -crf 18 -preset slow -pix_fmt yuv420p results/frames/frames.mp4
     """
