@@ -275,9 +275,13 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat, basis_var
     except (AttributeError, AssertionError):
         return None
 
+    lu = ss.linalg.splu(basis_mat)  # Factor once
+
     min_lam, max_lam = 1, 1
     intersections = []
-    for var in m.getVars():
+    for idx, var in enumerate(m.getVars()):
+
+        print(idx)
 
         if var.VBasis == BASIC:
             continue
@@ -291,7 +295,9 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat, basis_var
             row_indices.append(constr_names_to_indices[constrname])
             values.append(coeff)
         col = ss.csr_matrix((values, (row_indices, np.zeros_like(row_indices))), shape=(m.NumConstrs, 1))
-        inv_basis_mat_col = ss.linalg.spsolve(basis_mat, col)
+        # inv_basis_mat_col = ss.linalg.spsolve(basis_mat, col)
+        inv_basis_mat_col = lu.solve(col)
+
 
         # r = {v.VarName: 0 for v in m.getVars()}
         r = {
