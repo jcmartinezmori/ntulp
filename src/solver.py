@@ -317,7 +317,7 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat_lu, basis_
                 constrs.append(constr)
         m_S.optimize()
         if m_S.Status == 2:
-            if m_S._lam.X < lamRatTh or m_S._lam.X > 1/lamRatTh if lamRatTh != 0 else np.infty:
+            if m_S._lam.X < lamRatTh or m_S._lam.X > 1/lamRatTh if lamRatTh != 0 else np.inf:
                 return None
             if m_S._lam.X < min_lam:
                 min_lam = m_S._lam.X
