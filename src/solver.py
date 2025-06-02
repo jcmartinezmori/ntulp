@@ -246,6 +246,9 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat_lu, basis_
 
     N, J, K, A, B, V = instance
 
+    epsTh = kwargs.get('epsTh', 0)
+    lamRatTh = kwargs.get('lamRatTh', 1E-9)
+
     m_S = gp.Model()
     m_S.Params.OutputFlag = kwargs.get('OutputFlag', 0)
     m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-6)
@@ -270,7 +273,7 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat_lu, basis_
             constr = m_S.addConstr(m_S._lam <= m_S._u[i] - u_N[i])
             constrs.append(constr)
         m_S.optimize()
-        assert m_S._lam.X > kwargs.get('epsTh', 0)
+        assert m_S._lam.X > epsTh
         m_S.remove(constrs)
         m_S.reset()
     except (AttributeError, AssertionError):
@@ -295,7 +298,6 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat_lu, basis_
         # inv_basis_mat_col = ss.linalg.spsolve(basis_mat, col)
         inv_basis_mat_col = basis_mat_lu.solve(col.toarray())
 
-
         # r = {v.VarName: 0 for v in m.getVars()}
         r = {
             basis_varname: -coeff for coeff, basis_varname in zip(inv_basis_mat_col, basis_varnames)
@@ -315,13 +317,13 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat_lu, basis_
                 constrs.append(constr)
         m_S.optimize()
         if m_S.Status == 2:
-            if m_S._lam.X < kwargs.get('lamRatTh', 1E-9):
+            if m_S._lam.X < lamRatTh or m_S._lam.X > 1/lamRatTh if lamRatTh != 0 else np.infty:
                 return None
             if m_S._lam.X < min_lam:
                 min_lam = m_S._lam.X
             if m_S._lam.X > max_lam:
                 max_lam = m_S._lam.X
-            if min_lam/max_lam < kwargs.get('lamRatTh', 1E-9):
+            if min_lam/max_lam < lamRatTh:
                 return None
             intersections.append((var.VarName, m_S._lam.X))
         m_S.remove(constrs)
