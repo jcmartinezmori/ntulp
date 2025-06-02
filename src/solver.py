@@ -109,7 +109,7 @@ def main(instance, modelname, **kwargs):
                 continue
             intersections = get_intersections(
                 instance, m, constr_names_to_indices, basis_mat, basis_varnames, u_N, prev_S,
-                epsTh=1E-3, lamRatTh=1E-6
+                epsTh=0, lamRatTh=1E-6
             )
             if intersections is not None:
                 cutPrev = True
@@ -128,7 +128,7 @@ def main(instance, modelname, **kwargs):
         if intersections is not None:
             min_lam = min(lam for _, lam in intersections)
             max_lam = max(lam for _, lam in intersections)
-            if min_lam/max_lam >= 1E-7 or not cutPrev:
+            if min_lam/max_lam >= 1E-6 or not cutPrev:
                 s = m.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY, name='s[{0}]'.format(slackCount))
                 slackCount += 1
                 m.addConstr(gp.quicksum(m.getVarByName(varname) / lam for varname, lam in intersections) - s == 1)
