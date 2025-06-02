@@ -321,6 +321,7 @@ def get_intersections(instance, m, constr_names_to_indices, basis_mat_lu, basis_
             input(m_S._lam.X)
             if m_S._lam.X < lamRatTh or m_S._lam.X > 1/lamRatTh if lamRatTh > 0 else np.inf:
                 # if m_S._lam.X < lamRatTh:
+                input('returning')
                 return None
             if m_S._lam.X < min_lam:
                 min_lam = m_S._lam.X
