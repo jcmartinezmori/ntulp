@@ -104,10 +104,10 @@ def main(instance, modelname, **kwargs):
 
         print('... adding cuts for previous S.')
         cutPrev = False
-        # setS = set(S)
+        setS = set(S)
         for prev_S in Starts:
-            # if not setS.isdisjoint(set(prev_S)):
-            #     continue
+            if not setS.isdisjoint(set(prev_S)):
+                continue
             intersections = get_intersections(
                 instance, m, constr_names_to_indices, basis_mat_lu, basis_varnames, u_N, prev_S,
                 epsTh=0, lamRatTh=1E-6
