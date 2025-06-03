@@ -35,10 +35,11 @@ def plot_frames(n, objective, timeLimit, epsLimit, iterCountStart, iterCountEnd)
         lines_df['width'] = [LINESCALING * x_N[j] / lines_df.iloc[j].length for j in range(len(x_N))]
         for _, data in g.nodes(data=True):
             data['sample_ct'] = 0
-        for i, sample in samples_df.iterrows():
-            if i in S:
-                g.nodes[sample.o_node]['sample_ct'] += 1
-                g.nodes[sample.d_node]['sample_ct'] += 1
+        if S is not None:
+            for i, sample in samples_df.iterrows():
+                if i in S:
+                    g.nodes[sample.o_node]['sample_ct'] += 1
+                    g.nodes[sample.d_node]['sample_ct'] += 1
 
         folium_map = folium.Map(location=CENTER, zoom_start=11, tiles=None)
         for _, line in lines_df.iterrows():
@@ -108,8 +109,8 @@ if __name__ == '__main__':
     objective = 'maximin'
     timeLimit = 90
     epsLimit = 0
-    iterCountStart = 0
-    iterCountEnd = 100
+    iterCountStart = -1
+    iterCountEnd = -1
     html_dir = './results/frames/html'
     pdf_dir = './results/frames/pdf'
     pdf_crop_dir = './results/frames/pdf_crop'

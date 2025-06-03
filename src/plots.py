@@ -163,16 +163,23 @@ def plot_utilities(title, keys):
 
 if __name__ == '__main__':
 
-    ns = [132, 429, 1430]
+    ns = [42]
     objectives = ['maximin', 'utilitarian']
     timeLimit = 60
     epsLimit = 0
     iterLimit = 100
     plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit)
 
-    title = r'$\Large \textrm{Utility Distribution for Maximin Service Plan}$'
-    keys = [
-        (1430, 'maximin', 60, 0, -1, r'$\textrm{Without cooperation}$'),
-        (1430, 'maximin', 60, 0, 100, r'$\textrm{With cooperation}$')
-    ]
-    plot_utilities(title, keys)
+    # title = r'$\Large \textrm{Utility Distribution for Maximin Service Plan}$'
+    # keys = [
+    #     (1430, 'maximin', 90, 0, -1, r'$\textrm{Without cooperation}$'),
+    #     (1430, 'maximin', 90, 0, 100, r'$\textrm{With cooperation}$')
+    # ]
+    # plot_utilities(title, keys)
+    #
+    # title = r'$\Large \textrm{Utility Distribution for Utilitarian Service Plan}$'
+    # keys = [
+    #     (1430, 'utilitarian', 90, 0, -1, r'$\textrm{Without cooperation}$'),
+    #     (1430, 'utilitarian', 90, 0, 50, r'$\textrm{With cooperation}$')
+    # ]
+    # plot_utilities(title, keys)

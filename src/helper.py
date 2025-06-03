@@ -24,19 +24,15 @@ def preprocess_load():
     return g, stops_df, lines_df, trips_df
 
 
-def test():
+def blocking_test(n, objective, timeLimit, epsLimit, iterCount):
 
-    objective = 'maximin'
-    timeLimit = 300
-    epsLimit = 0
-    blocking_IterCount = 0
+    modelname = '{0}-{1}-{2}-{3}'.format(n, objective, timeLimit, epsLimit)
 
-    with open('{0}/results/instances/instance_{1}_125.pkl'.format(RELPATH, FILENAME), 'rb') as file:
+    with open('{0}/results/instances/instance_{1}_{2}.pkl'.format(RELPATH, FILENAME, n), 'rb') as file:
         instance = pickle.load(file)
-    modelname = '125-{0}-{1}-{2}'.format(objective, timeLimit, epsLimit)
     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(
-            RELPATH, FILENAME, modelname, blocking_IterCount
-    ), 'rb') as file:
+            RELPATH, FILENAME, modelname, iterCount), 'rb'
+    ) as file:
         _, u_N, _, _, _, _, _ = pickle.load(file)
 
-    solver.get_blocking(instance, u_N, divPhase=False, MIPFocus=3, timeLimit=np.Infinity)
+    solver.get_blocking(instance, u_N, divPhase=False, MIPFocus=3, TimeLimit=np.inf)

@@ -135,7 +135,8 @@ def main(instance, modelname, **kwargs):
                 m.addConstr(gp.quicksum(m.getVarByName(varname) / lam for varname, lam in intersections) - s == 1)
                 cutCount += 1
                 print('...... added cut for curr. S with coeff. ratio {0}.'.format(min_lam / max_lam))
-        Starts.add(S)
+        if iterCount % 2 == 0:
+            Starts.add(S)
         print('... solving model.')
 
         m.optimize()
@@ -144,7 +145,10 @@ def main(instance, modelname, **kwargs):
         kappa = m.getAttr('KappaExact')
 
         iterCount += 1
-        eps, S = get_blocking(instance, u_N, TimeLimit=timeLimit, Starts=Starts, divPhase=True)
+        if iterCount % 2 == 0:
+            eps, S = get_blocking(instance, u_N, TimeLimit=timeLimit, Starts=Starts, divPhase=True)
+        else:
+            eps, S = get_blocking(instance, u_N, TimeLimit=timeLimit, Starts=Starts, divPhase=False)
         S = tuple(sorted(S))
 
         out = x_N, u_N, time.time() - ts, cutCount, eps, S, kappa
