@@ -42,6 +42,7 @@ def plot_frames(n, objective, timeLimit, epsLimit, iterCountStart, iterCountEnd)
                     g.nodes[sample.d_node]['sample_ct'] += 1
 
         folium_map = folium.Map(location=CENTER, zoom_start=11, tiles=None)
+        folium.TileLayer('OpenStreetMap', opacity=1/6).add_to(folium_map)
         for _, line in lines_df.iterrows():
             folium.PolyLine(
                 line.coords, color=line.hexcolor, weight=line.width, opacity=1, tooltip=line.name
@@ -110,7 +111,7 @@ if __name__ == '__main__':
     timeLimit = 90
     epsLimit = 0
     iterCountStart = -1
-    iterCountEnd = -1
+    iterCountEnd = 101
     html_dir = './results/frames/html'
     pdf_dir = './results/frames/pdf'
     pdf_crop_dir = './results/frames/pdf_crop'
