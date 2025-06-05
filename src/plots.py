@@ -51,7 +51,7 @@ def plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit):
     for col, title in plots:
         fig = make_subplots(
             rows=1, cols=len(objectives), shared_xaxes=True, shared_yaxes=True,
-            subplot_titles=(r'$\Large \textrm{Maximin Service Plan}$', r'$\Large \textrm{Utilitarian Service Plan}$')
+            subplot_titles=(r'$\Large \textrm{Maximin Service Goal}$', r'$\Large \textrm{Utilitarian Service Goal}$')
         )
         for (objective, n), group_df in df.groupby(['objective', 'n']):
             fig.add_trace(
@@ -76,20 +76,20 @@ def plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit):
         for idx, _ in enumerate(objectives):
             fig.update_xaxes(
                 row=1, col=idx + 1,
-                range=[0, iterLimit], title_text=r'$\large \textrm{Number of Rounds}$', title_font={'size': 18}
+                range=[0, iterLimit], title_text=r'$\large \textrm{Number of Iterations}$', title_font={'size': 18}
             )
         for annotation in fig['layout']['annotations']:
             annotation['font'] = {'size': 22}
             annotation['y'] = 1.0125
         fig.update_layout(
             legend={
-                'orientation': 'h', 'entrywidth': 200, 'yanchor': 'top', 'y': -0.125, 'xanchor': 'right', 'x': 1,
+                'orientation': 'h', 'entrywidth': 200, 'yanchor': 'top', 'y': -0.125, 'xanchor': 'left', 'x': 0,
                 'font': {'size': 14}
             }
         )
 
         fig.show()
-        fig.write_image('./results/figures/{0}.png'.format(col), width=800, height=600, scale=4)
+        fig.write_image('./results/figures/{0}.png'.format(col), width=1000, height=500, scale=4)
 
 
 def plot_utilities(title, keys):
@@ -152,7 +152,7 @@ def plot_utilities(title, keys):
         annotation['y'] = 1.0125
     fig.update_layout(
         legend={
-            'orientation': 'h', 'entrywidth': 200, 'yanchor': 'top', 'y': -0.125, 'xanchor': 'right', 'x': 1,
+            'orientation': 'h', 'entrywidth': 200, 'yanchor': 'top', 'y': -0.125, 'xanchor': 'left', 'x': 0,
             'font': {'size': 14}
         }
     )
@@ -163,23 +163,23 @@ def plot_utilities(title, keys):
 
 if __name__ == '__main__':
 
-    ns = [42]
+    ns = [1430]
     objectives = ['maximin', 'utilitarian']
-    timeLimit = 60
+    timeLimit = 90
     epsLimit = 0
-    iterLimit = 100
+    iterLimit = 101
     plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit)
 
-    # title = r'$\Large \textrm{Utility Distribution for Maximin Service Plan}$'
+    title = r'$\Large \textrm{Utility Distribution for Maximin Service Goal}$'
+    keys = [
+        (1430, 'maximin', 90, 0, 101, r'$\textrm{With cooperation}$'),
+        (1430, 'maximin', 90, 0, -1, r'$\textrm{Without cooperation}$')
+    ]
+    plot_utilities(title, keys)
+
+    # title = r'$\Large \textrm{Utility Distribution for Utilitarian Service Goal}$'
     # keys = [
-    #     (1430, 'maximin', 90, 0, -1, r'$\textrm{Without cooperation}$'),
-    #     (1430, 'maximin', 90, 0, 100, r'$\textrm{With cooperation}$')
-    # ]
-    # plot_utilities(title, keys)
-    #
-    # title = r'$\Large \textrm{Utility Distribution for Utilitarian Service Plan}$'
-    # keys = [
-    #     (1430, 'utilitarian', 90, 0, -1, r'$\textrm{Without cooperation}$'),
-    #     (1430, 'utilitarian', 90, 0, 50, r'$\textrm{With cooperation}$')
+    #     (1430, 'utilitarian', 90, 0, 101, r'$\textrm{With cooperation}$'),
+    #     (1430, 'utilitarian', 90, 0, -1, r'$\textrm{Without cooperation}$')
     # ]
     # plot_utilities(title, keys)

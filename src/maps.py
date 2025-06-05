@@ -16,7 +16,7 @@ def main(n, samples=True, lines=True):
     g, _, lines_df, _ = helper.preprocess_load()
 
     folium_map = folium.Map(location=CENTER, zoom_start=11, tiles=None)
-    folium.TileLayer('OpenStreetMap', opacity=1/5).add_to(folium_map)
+    folium.TileLayer('OpenStreetMap', opacity=1/6).add_to(folium_map)
     if samples:
         samples_df = pd.read_csv('{0}/results/instances/samples_df_{1}_{2}.csv'.format(RELPATH, FILENAME, n))
         for _, data in g.nodes(data=True):
@@ -43,7 +43,7 @@ def main(n, samples=True, lines=True):
 
 
 if __name__ == '__main__':
-    ns = [5, 14, 42, 132, 429, 1430]
+    ns = [1430]
     html_dir = './results/maps/html'
     pdf_dir = './results/maps/pdf'
     pdf_crop_dir = './results/maps/pdf_crop'
