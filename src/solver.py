@@ -146,7 +146,7 @@ def main(instance, modelname, **kwargs):
 
         iterCount += 1
         if iterCount % 2 == 0:
-            eps, S = get_blocking(instance, u_N, TimeLimit=timeLimit, Starts=Starts, divPhase=True)
+            eps, S = get_blocking(instance, u_N, TimeLimit=timeLimit, Starts=Starts, divPhase=False)
         else:
             eps, S = get_blocking(instance, u_N, TimeLimit=timeLimit, Starts=Starts, divPhase=False)
         S = tuple(sorted(S))
@@ -221,7 +221,7 @@ def get_blocking(instance, u_N, **kwargs):
             else:
                 m_S._y[i].Start = 0
 
-    if kwargs.get('divPhase', True):
+    if kwargs.get('divPhase', False):
 
         m_S.Params.TimeLimit = kwargs.get('TimeLimit', 300)
         m_S.setObjective(m_S._del)
