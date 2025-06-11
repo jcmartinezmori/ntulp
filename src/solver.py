@@ -110,7 +110,7 @@ def main(instance, modelname, **kwargs):
                 continue
             intersections = get_intersections(
                 instance, m, constr_names_to_indices, basis_mat_lu, basis_varnames, u_N, prev_S,
-                epsTh=0, lamRatTh=1E-6
+                epsTh=0, lamRatTh=1E-7
             )
             if intersections is not None:
                 cutPrev = True
@@ -208,8 +208,10 @@ def get_blocking(instance, u_N, **kwargs):
     for i in N:
         m_S.addConstr(m_S._u[i] == gp.quicksum(V[i][j] * m_S._x[j] for j in J))
     for i in N:
-        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._del - weights[i] * m_S._u[i], gp.GRB.LESS_EQUAL, - weights[i] * u_N[i])
-        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps - m_S._u[i], gp.GRB.LESS_EQUAL, - u_N[i])
+        # m_S.addGenConstrIndicator(m_S._y[i], True, m_S._del - weights[i] * m_S._u[i], gp.GRB.LESS_EQUAL, - weights[i] * u_N[i])
+        # m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps - m_S._u[i], gp.GRB.LESS_EQUAL, - u_N[i])
+        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._del * weights[i] * u_N[i] - m_S._u[i], gp.GRB.LESS_EQUAL, 0)
+        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps * u_N[i] - m_S._u[i], gp.GRB.LESS_EQUAL, 0)
 
     for StartNumber, Start in enumerate(Starts):
         m_S.Params.StartNumber = StartNumber
@@ -234,7 +236,8 @@ def get_blocking(instance, u_N, **kwargs):
             else:
                 m_S._y[i].Start = 0
 
-        m_S.addConstr(m_S._del >= m_S._del.X / 2)
+        # m_S.addConstr(m_S._del >= m_S._del.X / 2)
+        m_S.addConstr(m_S._del >= 1 + (m_S._del.X - 1)/2)
 
     m_S.Params.TimeLimit = kwargs.get('TimeLimit', 300)
     m_S.setObjective(m_S._eps)

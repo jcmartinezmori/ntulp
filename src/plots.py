@@ -16,15 +16,17 @@ def plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit):
                     with open('{0}/results/solutions/{1}_{2}_{3}.pkl'.format(
                             RELPATH, FILENAME, modelname, iterCount
                     ), 'rb') as file:
-                        _, u_N, tt, cutct, eps, _, kappa = pickle.load(file)
+                        _, u_N, tt, cutct, eps, S, kappa = pickle.load(file)
                         tt /= (60 * 60)
                         util_obj = sum(u_N.values())
                         util_obj /= len(u_N)
                         mxmn_obj = min(u_N.values())
+                        min_S_util = min(u_N[i] for i in S)
+                        max_S_util = max(u_N[i] for i in S)
                         data.append(
                             (
                                 n, objective, timeLimit, iterCount,
-                                tt, cutct, kappa, eps, util_obj, mxmn_obj
+                                tt, cutct, kappa, eps, util_obj, mxmn_obj, min_S_util, max_S_util
                             )
                         )
                 except FileNotFoundError:
@@ -32,7 +34,9 @@ def plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit):
 
     df = pd.DataFrame(
         data,
-        columns=['n', 'objective', 'timelimit', 'iterCount', 'tt', 'cutct', 'kappa', 'eps', 'util_obj', 'mxmn_obj']
+        columns=[
+            'n', 'objective', 'timelimit', 'iterCount',
+            'tt', 'cutct', 'kappa', 'eps', 'util_obj', 'mxmn_obj', 'min_S_util', 'max_S_util']
     )
 
     color_map = {n: HEXCOLOR for n, HEXCOLOR in zip(ns, HEXCOLORS)}
@@ -45,7 +49,9 @@ def plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit):
         ('kappa', r'$\large \textrm{Basis Condition Number (}\kappa\textrm{)}$'),
         ('eps', r'$\large \textrm{Least Objection (}\epsilon\textrm{)}$'),
         ('util_obj', r'$\large \textrm{Utilitarian Social Welfare}$'),
-        ('mxmn_obj', r'$\large \textrm{Maximin Social Welfare}$')
+        ('mxmn_obj', r'$\large \textrm{Maximin Social Welfare}$'),
+        ('min_S_util', r'$\large \textrm{min_S_util}$'),
+        ('max_S_util', r'$\large \textrm{max_S_util}$')
     )
 
     for col, title in plots:
@@ -89,7 +95,7 @@ def plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit):
         )
 
         fig.show()
-        fig.write_image('./results/figures/{0}.png'.format(col), width=1000, height=500, scale=4)
+        # fig.write_image('./results/figures/{0}.png'.format(col), width=1000, height=500, scale=4)
 
 
 def plot_utilities(title, keys):
