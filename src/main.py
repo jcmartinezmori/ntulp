@@ -21,7 +21,7 @@ def main(n, objective, timeLimit, epsLimit, **kwargs):
 
 if __name__ == '__main__':
     n = 1430
-    objective = 'maximin'
+    objective = 'utilitarian'
     timeLimit = 90
     epsLimit = 0
     iterLimit = 100
