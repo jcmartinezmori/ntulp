@@ -188,7 +188,6 @@ def get_blocking(instance, u_N, **kwargs):
             Starts.add(S_j)
 
     m_S = gp.Model()
-    m_S.Params.BestObjStop = kwargs.get('BestObjStop', m_S.Params.BestObjStop)
     m_S.Params.OutputFlag = kwargs.get('OutputFlag', 1)
     m_S.Params.FeasibilityTol = kwargs.get('FeasibilityTol', 1E-6)
     m_S.Params.MIPFocus = kwargs.get('MIPFocus', 1)
@@ -239,6 +238,7 @@ def get_blocking(instance, u_N, **kwargs):
         # m_S.addConstr(m_S._del >= m_S._del.X / 2)
         m_S.addConstr(m_S._del >= 1 + (m_S._del.X - 1)/2)
 
+    m_S.Params.BestObjStop = kwargs.get('BestObjStop', m_S.Params.BestObjStop)
     m_S.Params.TimeLimit = kwargs.get('TimeLimit', 300)
     m_S.setObjective(m_S._eps)
     m_S.optimize()
