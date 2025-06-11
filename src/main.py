@@ -23,7 +23,7 @@ if __name__ == '__main__':
     n = 1430
     objective = 'utilitarian'
     timeLimit = 90
-    epsLimit = 0
+    epsLimit = 1
     iterLimit = 100
     main(n, objective, timeLimit, epsLimit, iterLimit=iterLimit)
 
