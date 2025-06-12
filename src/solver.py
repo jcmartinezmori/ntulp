@@ -110,7 +110,7 @@ def main(instance, modelname, **kwargs):
                 continue
             intersections = get_intersections(
                 instance, m, constr_names_to_indices, basis_mat_lu, basis_varnames, u_N, prev_S,
-                epsTh=0, lamRatTh=1E-7
+                epsTh=0, lamRatTh=1E-6
             )
             if intersections is not None:
                 cutPrev = True
