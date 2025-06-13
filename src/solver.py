@@ -214,8 +214,8 @@ def get_blocking(instance, u_N, **kwargs):
         m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps * u_N[i] - m_S._u[i], gp.GRB.LESS_EQUAL, 0)
 
         m_S.addGenConstrIndicator(m_S._y[i], True, m_S._del - m_S._u[i], gp.GRB.LESS_EQUAL, - u_N[i])
-    
-    m.addConstr(m_S._del >= m_S.Params.FeasibilityTol)
+
+    m_S.addConstr(m_S._del >= m_S.Params.FeasibilityTol)
 
     for StartNumber, Start in enumerate(Starts):
         m_S.Params.StartNumber = StartNumber
