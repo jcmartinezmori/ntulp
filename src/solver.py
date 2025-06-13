@@ -210,8 +210,12 @@ def get_blocking(instance, u_N, **kwargs):
     for i in N:
         # m_S.addGenConstrIndicator(m_S._y[i], True, m_S._del - weights[i] * m_S._u[i], gp.GRB.LESS_EQUAL, - weights[i] * u_N[i])
         # m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps - m_S._u[i], gp.GRB.LESS_EQUAL, - u_N[i])
-        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._del * weights[i] * u_N[i] - m_S._u[i], gp.GRB.LESS_EQUAL, 0)
+        # m_S.addGenConstrIndicator(m_S._y[i], True, m_S._del * weights[i] * u_N[i] - m_S._u[i], gp.GRB.LESS_EQUAL, 0)
         m_S.addGenConstrIndicator(m_S._y[i], True, m_S._eps * u_N[i] - m_S._u[i], gp.GRB.LESS_EQUAL, 0)
+
+        m_S.addGenConstrIndicator(m_S._y[i], True, m_S._del - m_S._u[i], gp.GRB.LESS_EQUAL, - u_N[i])
+    
+    m.addConstr(m_S._del >= m_S.Params.FeasibilityTol)
 
     for StartNumber, Start in enumerate(Starts):
         m_S.Params.StartNumber = StartNumber
