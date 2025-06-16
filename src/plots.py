@@ -5,7 +5,7 @@ from plotly.subplots import make_subplots
 from src.config import *
 
 
-def plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit):
+def plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit, showlegend=False):
 
     data = []
     for n in ns:
@@ -43,11 +43,17 @@ def plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit):
     marker_map = {n: MARKER for n, MARKER in zip(ns, MARKERS)}
     subplot_map = {objective: idx + 1 for idx, objective in enumerate(objectives)}
 
+    # plots = (
+    #     ('eps', r'$\large \textrm{Multiplicative Least Objection (}\epsilon\textrm{)}$'),
+    #     ('mxmn_obj', r'$\large \textrm{Maximin Social Welfare}$'),
+    #     ('kappa', r'$\large \textrm{Basis Condition Number}$')
+    # )
+
     plots = (
         ('tt', r'$\large \textrm{Elapsed time [hr.]}$'),
         ('cutct', r'$\large \textrm{Number of Cuts}$'),
-        ('kappa', r'$\large \textrm{Basis Condition Number (}\kappa\textrm{)}$'),
-        ('eps', r'$\large \textrm{Least Objection (}\epsilon\textrm{)}$'),
+        ('kappa', r'$\large \textrm{Basis Condition Number}$'),
+        ('eps', r'$\large \textrm{Multiplicative Least Objection (}\epsilon\textrm{)}$'),
         ('util_obj', r'$\large \textrm{Utilitarian Social Welfare}$'),
         ('mxmn_obj', r'$\large \textrm{Maximin Social Welfare}$'),
         ('min_S_util', r'$\large \textrm{min_S_util}$'),
@@ -66,7 +72,7 @@ def plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit):
                     y=group_df[col],
                     mode='lines+markers',
                     name=r'$n: {0}$'.format(n),
-                    showlegend=True if subplot_map[objective] == 1 else False,
+                    showlegend=True if subplot_map[objective] == 1 and showlegend else False,
                     line={'color': color_map[n], 'dash': 'solid'},
                     marker={'color': color_map[n], 'symbol': marker_map[n], 'size': 5}
                 ),
@@ -95,7 +101,7 @@ def plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit):
         )
 
         fig.show()
-        # fig.write_image('./results/figures/{0}.png'.format(col), width=1000, height=500, scale=4)
+        fig.write_image('./results/figures/{0}.png'.format(col), width=1000, height=500, scale=4)
 
 
 def plot_utilities(title, keys):
@@ -171,21 +177,21 @@ if __name__ == '__main__':
 
     ns = [1430]
     objectives = ['maximin', 'utilitarian']
-    timeLimit = 90
-    epsLimit = 0
+    timeLimit = 300
+    epsLimit = 1
     iterLimit = 101
     plot_convergence(ns, objectives, timeLimit, epsLimit, iterLimit)
 
-    title = r'$\Large \textrm{Utility Distribution for Maximin Service Goal}$'
+    title = r'$\Large \textrm{Maximin Service Goal}$'
     keys = [
-        (1430, 'maximin', 90, 0, 101, r'$\textrm{With cooperation}$'),
-        (1430, 'maximin', 90, 0, -1, r'$\textrm{Without cooperation}$')
+        (1430, 'maximin', 300, 1, 101, r'$\textrm{With cooperation}$'),
+        (1430, 'maximin', 300, 1, -1, r'$\textrm{Without cooperation}$')
     ]
     plot_utilities(title, keys)
 
-    # title = r'$\Large \textrm{Utility Distribution for Utilitarian Service Goal}$'
-    # keys = [
-    #     (1430, 'utilitarian', 90, 0, 101, r'$\textrm{With cooperation}$'),
-    #     (1430, 'utilitarian', 90, 0, -1, r'$\textrm{Without cooperation}$')
-    # ]
-    # plot_utilities(title, keys)
+    title = r'$\Large \textrm{Utilitarian Service Goal}$'
+    keys = [
+        (1430, 'utilitarian', 300, 1, 101, r'$\textrm{With cooperation}$'),
+        (1430, 'utilitarian', 300, 1, -1, r'$\textrm{Without cooperation}$')
+    ]
+    plot_utilities(title, keys)

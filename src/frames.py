@@ -108,8 +108,8 @@ async def convert_html_to_images(html_dir, pdf_dir, pdf_crop_dir, png_crop_dir, 
 if __name__ == '__main__':
     n = 1430
     objective = 'maximin'
-    timeLimit = 90
-    epsLimit = 0
+    timeLimit = 300
+    epsLimit = 1
     iterCountStart = -1
     iterCountEnd = 101
     html_dir = './results/frames/html'
